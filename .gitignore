@@ -1,0 +1,6 @@
+data/*
+results/*
+build/*
+.vscode/*
+
+knn_project
