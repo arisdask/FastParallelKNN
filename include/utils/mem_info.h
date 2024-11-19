@@ -4,7 +4,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define MEMORY_USAGE_RATIO 0.5
+// Margin scalar of the available memory for safety.
+#define MEMORY_USAGE_RATIO 0.7
+
+// - If USE_CONST_MEMORY == 0: `get_usable_memory` returns the usable memory
+// based on the available memory value inside the /proc/meminfo file in linux (Ubuntu distr).
+// run this in shell: `cat /proc/meminfo` , to open this file. 
+// - If USE_CONST_MEMORY == 1: `get_usable_memory` always returns a constant prediction of the usable
+// memory, `USABLE_MEM_PREDICTION`, based on the computer in which the project will run.
+#define USE_CONST_MEMORY 1
+
+// - 3000000kB = 3GB is a safe idea, if your system has `8GB` of total RAM.
+// - In case the program crashes try to reduce `USABLE_MEM_PREDICTION` to a value based on your machines specs.
+// - The value should be in `kB`
+#define USABLE_MEM_PREDICTION 7000000
 
 /**
  * Estimate the amount of usable memory available on the system (Linux specific).

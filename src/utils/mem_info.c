@@ -1,6 +1,11 @@
 #include "../../include/utils/mem_info.h"
 
 size_t get_usable_memory() {
+    if (USE_CONST_MEMORY != 0) {
+        // USABLE_MEM_PREDICTION*1024 to convert from kB to bytes
+        return (size_t)USABLE_MEM_PREDICTION * 1000;
+    }
+
     FILE *file = fopen("/proc/meminfo", "r");
     if (file == NULL) {
         fprintf(stderr, "get_usable_memory: Could not open /proc/meminfo");

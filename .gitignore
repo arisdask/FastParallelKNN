@@ -4,3 +4,4 @@ build/*
 .vscode/*
 
 knn_project
+knn_project_clang

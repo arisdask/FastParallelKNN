@@ -68,11 +68,11 @@ end
 
 
 # Parameters:
-# - `corpus`        A matrix of data points that form the reference dataset.
-# - `query`         A matrix of data points that need neighbors identified.
-# - `k`             The number of nearest neighbors to find for each query point.
-# - `num_of_blocks` Number of blocks to split the query for processing.
-function knn_exact_serial(corpus, query, k, num_of_blocks)
+# - `corpus`            A matrix of data points that form the reference dataset.
+# - `query`             A matrix of data points that need neighbors identified.
+# - `k`                 The number of nearest neighbors to find for each query point.
+# - `num_of_threads`    Number of threads which run this function simultaneously.
+function knn_exact_serial(corpus, query, k, num_of_threads)
     println("knn_exact_serial: Start")
     corpus_length, d = size(corpus)
     query_length = size(query, 1)
@@ -84,10 +84,8 @@ function knn_exact_serial(corpus, query, k, num_of_blocks)
     q_start = 1
     while q_start <= query_length
         # Calculate max chunk length
-        max_chunk_length = (num_of_blocks <= 0) ? 
-            div((get_usable_memory() - d * (corpus_length + 1) * sizeof(Float64) - 2 * k * sizeof(Float64)),
-                ((corpus_length + d + 2 * k) * sizeof(Float64))) :
-            div(query_length, num_of_blocks)
+        max_chunk_length = div( (div(get_usable_memory(), num_of_threads) - d * (corpus_length + 1) * sizeof(Float64) - 2 * k * sizeof(Float64)),
+                ((corpus_length + d + 2 * k) * sizeof(Float64)) )
 
         if max_chunk_length == 0
             max_chunk_length = 1
@@ -114,52 +112,4 @@ function knn_exact_serial(corpus, query, k, num_of_blocks)
     println("knn_exact_serial: Done")
     # Squared Distances!
     return final_indices, final_distances
-end
-
-
-############################  knn_exact_serial results test ############################
-# ==================================================================================== #
-for i in 1:1:10
-    # corpus: Matrix of size (n_samples, d) where each row is a data point
-    # query: Matrix of size (m_samples, d) where each row is a query point
-    # k: Number of nearest neighbors to find
-    C = copy(load_hdf5(joinpath(@__DIR__, "../../data/sift-128-euclidean.hdf5"), "train")')
-    Q = copy(load_hdf5(joinpath(@__DIR__, "../../data/sift-128-euclidean.hdf5"), "test")')
-    k = 5
-
-    global idx = NaN
-    global dst = NaN
-
-    @time idx, dst = knn_exact_serial(C, Q, k, -1)
-    C = nothing
-    Q = nothing
-    GC.gc()
-
-    neighbors = copy(load_hdf5(joinpath(@__DIR__, "../../data/sift-128-euclidean.hdf5"), "neighbors")')
-    distances = copy(load_hdf5(joinpath(@__DIR__, "../../data/sift-128-euclidean.hdf5"), "distances")')
-
-    err_cnt = 0
-    for i in 1:1:size(neighbors, 1)
-        for j in 1:1:k
-            # It's minus 1 ( - 1 ) because the data start at zero in the dataset.
-            if abs(idx[i, j] - neighbors[i, j] - 1) > 0.01
-                # println("Error at neighbors: $i, $j, idx: $(idx[i, j] - 1), neighbors: $(neighbors[i, j])")
-                err_cnt += 1
-            end
-        end
-    end
-    println("Neighbors Accuracy: $(100 - err_cnt * 100 / (k * size(neighbors, 1)))%")
-    println(" ")
-
-    err_cnt = 0
-    for i in 1:1:size(neighbors, 1)
-        for j in 1:1:k
-            if abs(sqrt(dst[i, j]) - distances[i, j]) > 0.01
-                # println("Error at distances: $i, $j, dst: $(dst[i, j]), distances: $(distances[i, j])")
-                err_cnt += 1
-            end
-        end
-    end
-    println("Distances Accuracy: $(100 - err_cnt * 100 / (k * size(neighbors, 1)))%")
-    println("=============================================================================")
 end

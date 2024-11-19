@@ -1,56 +1,55 @@
 # FastParallelKNN
 
+## Table of Contents
+1. [Overview](#overview)
+2. [Setup](#setup)
+   - [Core Dependencies](#core-dependencies)
+   - [Parallel Dependencies](#parallel-dependencies)
+   - [Additional Tools](#additional-tools)
+   - [Step-by-Step Installation](#step-by-step-installation)
+3. [Project Structure](#project-structure)
+   - [Folder Breakdown](#folder-breakdown)
+4. [Code Overview](#code-overview)
+   - [Exact k-NN Implementations](#1-exact-k-nn-implementations)
+   - [Approximate k-NN Implementations](#2-approximate-k-nn-implementations)
+   - [Utility Functions](#3-utility-functions)
+5. [Benchmarking and Testing](#benchmarking-and-testing)
+   - [Julia Benchmarks](#julia-benchmarks)
+   - [MATLAB Benchmarks](#matlab-benchmarks)
+6. [Results](#results)
+7. [Troubleshooting](#troubleshooting)
+
 ## Overview
 
-**FastParallelKNN** is a high-performance k-Nearest Neighbors (k-NN) search library implemented in C, with bindings and benchmarks in Julia and MATLAB. The project includes both **exact** and **approximate** k-NN algorithms, with support for **serial** and **parallel** implementations using **OpenMP**, **OpenCilk**, and **Pthreads**.
+**FastParallelKNN** is a high-performance k-Nearest Neighbors (k-NN) search library implemented in C, with additional testing and benchmarking scripts in Julia and MATLAB. The project offers both **exact** and **approximate** k-NN solutions, with versions implemented for **serial** and **parallel** processing using **OpenMP**, **OpenCilk**, and **Pthreads**.
 
-The goal is to deliver efficient and scalable k-NN solutions that can handle large datasets. The code is designed with flexibility in mind, allowing users to switch between exact and approximate methods, and choose the parallel framework that best fits their hardware environment.
+The primary aim is to provide efficient, scalable solutions for k-NN search, enabling the handling of large datasets. The library is designed to allow users flexibility in choosing between exact and approximate methods, as well as the parallel framework best suited to their hardware.
 
-## Project Structure
-
-```
-├── data                 # Data files (e.g., HDF5 datasets)
-├── include              # Header files
-│   ├── approximate      # Approximate k-NN headers
-│   ├── exact            # Exact k-NN headers
-│   └── utils            # Utility headers (I/O, memory, etc.)
-├── julia                # Julia code for testing and benchmarking
-├── matlab               # MATLAB code for benchmarking
-├── results              # Output files for benchmarks, logs, and plots
-├── src                  # Source code (C implementations)
-│   ├── approximate      # Approximate k-NN C implementations
-│   ├── exact            # Exact k-NN C implementations
-│   └── utils            # Utility functions
-└── README.md            # This file
-```
-
-## Dependencies
+## Setup
 
 ### Core Dependencies
 
-The following libraries and tools are required to build and run the project:
+The following packages and libraries are required to build and run the project:
 
-- **GCC**: GNU Compiler Collection, with support for OpenMP.
-- **OpenBLAS**: Optimized BLAS (Basic Linear Algebra Subprograms) library.
-- **GSL**: GNU Scientific Library for numerical computations.
-- **HDF5 Library**: For handling and loading datasets in HDF5 format.
+- **GCC**: The GNU Compiler Collection for building the project, including OpenMP support.
+- **OpenBLAS**: An optimized BLAS (Basic Linear Algebra Subprograms) library for fast matrix operations.
+- **GSL**: The GNU Scientific Library for advanced numerical computations.
+- **HDF5 Library**: To manage and read datasets in HDF5 format.
 
 ### Parallel Dependencies
 
-If you plan to run parallel versions of the k-NN search, make sure you have the following tools installed:
+If you intend to use the parallel k-NN versions, ensure you have the following:
 
-- **OpenMP**: Supported by most modern GCC versions.
-- **OpenCilk**: For task-parallel implementations. Installation instructions can be found at [OpenCilk GitHub](https://github.com/OpenCilk).
-- **Pthreads**: Standard threading library available in UNIX/Linux environments.
+- **OpenMP**: Enabled by default in most modern GCC versions. It provides shared-memory parallelism.
+- **OpenCilk**: A task-parallel runtime system for C/C++. Follow installation instructions from [OpenCilk GitHub](https://github.com/OpenCilk).
+- **Pthreads**: Standard POSIX threads, available on most UNIX/Linux distributions.
 
 ### Additional Tools
 
-- **Julia**: For benchmarking and plotting performance data. Installation instructions can be found at [JuliaLang](https://julialang.org/downloads/).
-- **MATLAB**: For running additional benchmark scripts.
+- **Julia**: For benchmarking and performance visualization. [Download Julia](https://julialang.org/downloads/).
+- **MATLAB**: To run additional benchmark scripts (optional).
 
-## Building the Project
-
-### Step-by-Step Setup
+### Step-by-Step Installation
 
 1. **Clone the Repository**:
    ```bash
@@ -65,110 +64,134 @@ If you plan to run parallel versions of the k-NN search, make sure you have the 
      sudo apt-get install gcc libopenblas-dev libgsl-dev libhdf5-dev
      ```
 
-3. **Build the Project**:
-   - To compile all implementations (serial, approximate, and parallel):
+3. **Install OpenCilk** (for OpenCilk-based implementations):
+   - Download and follow instructions from [OpenCilk's Installation Guide](https://github.com/OpenCilk/opencilk-project).
+
+4. **Build the Project**:
+   - For GCC:
      ```bash
-     make all
+     make -f Makefile.gcc all
      ```
-   - This will generate the executables in the root directory.
+   - For Clang with OpenCilk:
+     ```bash
+     make -f Makefile.clang all
+     ```
 
 ### Running the Code
 
-After building the project, you can run each implementation based on your requirements:
+To run the different implementations, you can use:
 
 - **Serial Exact k-NN**:
   ```bash
-  ./knn_exact_serial
+  ./knn_project
   ```
 - **Parallel Exact k-NN (OpenMP)**:
   ```bash
-  ./knn_exact_openmp
+  ./knn_project_openmp
   ```
 - **Parallel Exact k-NN (OpenCilk)**:
   ```bash
-  ./knn_exact_opencilk
+  ./knn_project_clang
   ```
 - **Parallel Exact k-NN (Pthreads)**:
   ```bash
-  ./knn_exact_pthread
+  ./knn_project_pthread
   ```
 
-For the approximate implementations, similar commands apply:
+## Project Structure
 
-- **Serial Approximate k-NN**:
-  ```bash
-  ./knn_approx_serial
-  ```
-- **Parallel Approximate k-NN (OpenMP)**:
-  ```bash
-  ./knn_approx_openmp
-  ```
-- **Parallel Approximate k-NN (OpenCilk)**:
-  ```bash
-  ./knn_approx_opencilk
-  ```
-- **Parallel Approximate k-NN (Pthreads)**:
-  ```bash
-  ./knn_approx_pthread
-  ```
+```
+├── build                 # Compiled object files and binaries
+│   ├── exact             # Object files for exact k-NN implementations
+│   ├── main.o            # Main executable object file
+│   ├── tests             # Object files for test functions
+│   └── utils             # Object files for utility functions
+├── data                  # Dataset files (HDF5 format)
+├── include               # Header files for C code
+│   ├── approximate       # Headers for approximate k-NN algorithms
+│   ├── exact             # Headers for exact k-NN algorithms
+│   ├── tests             # Headers for testing functions
+│   └── utils             # Utility headers (I/O, distance calculations, etc.)
+├── julia                 # Julia scripts for benchmarking
+│   ├── knnAlgorithms     # Specific k-NN algorithm implementations in Julia
+│   └── plotBenchmarks.jl # Script to plot benchmark results
+├── knn_project           # Main executable for GCC builds
+├── knn_project_clang     # Main executable for Clang/OpenCilk builds
+├── Makefile.gcc          # Makefile for GCC builds
+├── Makefile.clang        # Makefile for Clang/OpenCilk builds
+├── matlab                # MATLAB script for k-NN benchmarks
+├── README.md             # Project documentation
+├── results               # Folder for benchmark results, logs, and plots
+├── run_all_knn.sh        # Shell script to run all k-NN implementations
+├── run_main_knn.sh       # Shell script to run the main executable
+├── run_main_opencilk_knn.sh # Shell script for OpenCilk version
+└── src                   # Source code for k-NN implementations
+    ├── approximate       # Approximate k-NN source files
+    ├── exact             # Exact k-NN source files
+    ├── tests             # Test functions for k-NN algorithms
+    └── utils             # Utility source files (I/O, memory, distance)
+```
+
+### Folder Breakdown
+
+- **data**: Contains HDF5 dataset files for testing.
+- **include**: Header files organized by functionality (exact/approximate, utility).
+- **julia**: Julia scripts for additional testing and benchmarks.
+- **matlab**: MATLAB scripts for comparing results.
+- **results**: Output directory for logs, benchmarks, and plots.
+- **src**: Core source files for the k-NN implementations (exact/approximate) and utilities.
 
 ## Code Overview
 
 ### 1. Exact k-NN Implementations
 
-The exact k-NN implementations find the exact k nearest neighbors using Euclidean distance:
-
-- **Serial Version**: A straightforward implementation of the k-NN algorithm, iterating over all data points.
+- **Serial Version**: Implements k-NN using a basic brute-force approach.
 - **Parallel Versions**:
-  - **OpenMP**: Uses shared-memory parallelism to distribute distance calculations across multiple threads.
-  - **OpenCilk**: A task-based parallel model to handle load balancing efficiently.
-  - **Pthreads**: A low-level threading model for fine control over thread management.
+  - **OpenMP**: Leverages shared-memory parallelism.
+  - **OpenCilk**: Utilizes task-based parallelism for dynamic load balancing.
+  - **Pthreads**: Provides thread-level parallelism for granular control.
 
 ### 2. Approximate k-NN Implementations
 
-The approximate k-NN versions aim to reduce computation time by trading a small amount of accuracy:
-
-- **Serial Version**: A baseline implementation using probabilistic and space-partitioning techniques like Locality-Sensitive Hashing (LSH).
-- **Parallel Versions**: These versions leverage different parallel frameworks to enhance performance while maintaining reasonable accuracy.
+- **Serial Version**: Implements approximate k-NN using probabilistic techniques like Locality-Sensitive Hashing (LSH).
+- **Parallel Versions**: These implementations are parallelized to improve performance, with acceptable accuracy trade-offs.
 
 ### 3. Utility Functions
 
-Utility functions handle core operations such as:
+Utility functions handle crucial tasks like:
 
-- **Dataset I/O**: Reading and writing datasets in HDF5 format.
-- **Distance Calculations**: Computing squared Euclidean distances between points.
-- **Memory Management**: Checking available memory to optimize dataset handling.
+- **Dataset I/O**: Load and save data in HDF5 format.
+- **Distance Calculations**: Perform efficient distance computations using matrix operations.
+- **Memory Management**: Optimize dataset handling based on system memory.
 
 ## Benchmarking and Testing
 
 ### Julia Benchmarks
 
-The `julia/knnAlgorithms` folder contains Julia scripts for benchmarking the performance of different k-NN implementations:
-
-- **Serial and Parallel Benchmarks**: Measure execution time, memory usage, and accuracy across exact and approximate methods.
-- **Plotting**: Use the `plotBenchmarks.jl` script to generate visual plots of the benchmarking results.
-
-To run the Julia benchmarks, ensure you have Julia installed and execute:
+Julia scripts in `julia/knnAlgorithms` provide benchmarks for serial and parallel implementations. To run a Julia benchmark:
 ```bash
 julia julia/knnAlgorithms/knnExactSerial.jl
 ```
 
+Use `plotBenchmarks.jl` to visualize benchmark results.
+
 ### MATLAB Benchmarks
 
-In the `matlab` folder, there is a MATLAB script to validate the k-NN implementations against existing MATLAB k-NN functions:
+For MATLAB, use the script in the `matlab` folder:
 ```matlab
 run('matlab/knnBenchmark.m')
 ```
 
 ## Results
 
-All benchmarking results, logs, and plots will be saved in the `results` folder:
+The `results` directory holds:
 
-- **Benchmarks**: Raw performance data from tests.
-- **Logs**: Detailed logs of the k-NN executions.
-- **Plots**: Graphical analysis of performance across implementations.
+- **Benchmarks**: Raw test performance data.
+- **Logs**: Execution logs for debugging and analysis.
+- **Plots**: Visualization of k-NN accuracy and speed.
 
 ## Troubleshooting
 
-- **Linking Errors**: Ensure the HDF5 library and other dependencies are correctly linked. The `Makefile` includes flags like `-lhdf5` and `$(pkg-config --cflags --libs hdf5)` to help with proper linking.
-- **Dataset Errors**: Make sure that the dataset paths are correct and that the files are formatted properly in HDF5.
+- **Compiling Errors**: Ensure dependencies are installed (`libhdf5`, `libopenblas`, `libgsl`).
+- **Dataset Errors**: Confirm the HDF5 dataset files are correctly formatted and accessible.
+- **OpenCilk Issues**: If `OpenCilk` is not recognized, check the installation path and update your `PATH` environment variable.
