@@ -14,13 +14,14 @@
 // memory, `USABLE_MEM_PREDICTION`, based on the computer in which the project will run.
 #define USE_CONST_MEMORY 1
 
-// - 3000000kB = 3GB is a safe idea, if your system has `8GB` of total RAM.
+// - 3000000kB = 3GB is a safe but still efficient idea, if your system has `8GB` of total RAM.
 // - In case the program crashes try to reduce `USABLE_MEM_PREDICTION` to a value based on your machines specs.
 // - The value should be in `kB`
-#define USABLE_MEM_PREDICTION 7000000
+#define USABLE_MEM_PREDICTION 6000000
+
 
 /**
- * Estimate the amount of usable memory available on the system (Linux specific).
+ * Estimate the amount of usable memory available on the system.
  * 
  * @return  Size of usable memory in bytes.
  */

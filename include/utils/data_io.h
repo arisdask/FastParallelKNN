@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <hdf5/serial/hdf5.h>  //sudo apt-get install libhdf5-dev
+#include <sys/stat.h>
 
 /**
  * Loads data from an HDF5 file.
@@ -23,12 +24,26 @@ float* load_hdf5(const char* filename, const char* dataset_name, int* n, int* d)
  * 
  * @param filename      Path to the HDF5 file to create or overwrite.
  * @param dataset_name  Name of the dataset within the HDF5 file to save.
- * @param data          Pointer to the data to save, organized as a 1D-array.
+ * @param data          Pointer to the float data to save, organized as a 1D-array.
  * @param n             Number of rows in the dataset.
  * @param d             Dimensionality (number of columns) of each row in the dataset.
  * 
  * @return              0 on success, -1 on failure.
  */
-int save_hdf5(const char* filename, const char* dataset_name, const float* data, int n, int d);
+int save_float_hdf5(const char* filename, const char* dataset_name, const float* data, int n, int d);
+
+
+/**
+ * Save data to an HDF5 file.
+ * 
+ * @param filename      Path to the HDF5 file to create or overwrite.
+ * @param dataset_name  Name of the dataset within the HDF5 file to save.
+ * @param data          Pointer to the int data to save, organized as a 1D-array.
+ * @param n             Number of rows in the dataset.
+ * @param d             Dimensionality (number of columns) of each row in the dataset.
+ * 
+ * @return              0 on success, -1 on failure.
+ */
+int save_int_hdf5(const char* filename, const char* dataset_name, const int* data, int n, int d);
 
 #endif // DATA_IO_H

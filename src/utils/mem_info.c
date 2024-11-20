@@ -2,7 +2,7 @@
 
 size_t get_usable_memory() {
     if (USE_CONST_MEMORY != 0) {
-        // USABLE_MEM_PREDICTION*1024 to convert from kB to bytes
+        // USABLE_MEM_PREDICTION*1000 to convert from kB to bytes
         return (size_t)USABLE_MEM_PREDICTION * 1000;
     }
 
@@ -23,6 +23,6 @@ size_t get_usable_memory() {
     
     fclose(file);
 
-    // [result]*1024 to convert from kB to bytes
+    // [result]*1024 to convert from kiB to bytes
     return MEMORY_USAGE_RATIO * mem_available * 1024;
 }
