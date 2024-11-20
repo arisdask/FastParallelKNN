@@ -69,3 +69,63 @@ int generate_knn_exact_results(knn_exact_t knnsearch, const char* data_path, con
 
     return 0;
 }
+
+int generate_knn_approx_results(knn_approx_t knnsearch, const char* data_path, const char* dataset_name, int k, int num_of_threads, int accuracy, int id) {
+    int dataset_length, d;
+
+    // Load the corpus (training) set
+    float* dataset = load_hdf5(data_path, dataset_name, &dataset_length, &d);
+    if (dataset == NULL) {
+        fprintf(stderr, "generate_knn_approx_results: Failed to load the %s data of %s.\n", dataset_name, data_path);
+        return -1;
+    }
+
+    // Allocate memory for the k-NN results (indices and distances)
+    int* idx = (int*)malloc(dataset_length * k * sizeof(int));
+    float* dst = (float*)malloc(dataset_length * k * sizeof(float));
+    if (idx == NULL || dst == NULL) {
+        fprintf(stderr, "generate_knn_approx_results: Memory allocation failed for k-NN results.\n");
+        free(dataset);
+        return -1;
+    }
+
+    // Timing the k-NN function
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+    knnsearch(dataset, k, idx, dst, dataset_length, d, num_of_threads, accuracy);
+    gettimeofday(&end, NULL);
+
+    // Calculate elapsed time in seconds
+    double time_taken = (end.tv_sec - start.tv_sec) + ((end.tv_usec - start.tv_usec) / 1e6);
+    // printf("generate_knn_exact_results: k-NN search elapsed time is %lf seconds\n", time_taken);
+    printf("Running time: %lf seconds\n ", time_taken);
+
+    // Cleanup test and train datasets
+    free(dataset);
+
+    
+    // Save the results: 
+    if (id == 5) {
+        save_int_hdf5("results/data_knn/knn_approx_serial.hdf5", "neighbors", idx, dataset_length, k);
+        save_float_hdf5("results/data_knn/knn_approx_serial.hdf5", "distances", dst, dataset_length, k);
+    } else 
+    if (id == 6) {
+        save_int_hdf5("results/data_knn/knn_approx_pthread.hdf5", "neighbors", idx, dataset_length, k);
+        save_float_hdf5("results/data_knn/knn_approx_pthread.hdf5", "distances", dst, dataset_length, k);
+    } else 
+    if (id == 7) {
+        save_int_hdf5("results/data_knn/knn_approx_openmp.hdf5", "neighbors", idx, dataset_length, k);
+        save_float_hdf5("results/data_knn/knn_approx_openmp.hdf5", "distances", dst, dataset_length, k);
+    } else 
+    if (id == 8) {
+        save_int_hdf5("results/data_knn/knn_approx_opencilk.hdf5", "neighbors", idx, dataset_length, k);
+        save_float_hdf5("results/data_knn/knn_approx_opencilk.hdf5", "distances", dst, dataset_length, k);
+    }
+    
+
+    // Cleanup
+    free(idx);
+    free(dst);
+
+    return 0;
+}

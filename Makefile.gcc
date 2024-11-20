@@ -16,17 +16,19 @@ BUILD_DIR = build
 
 # Source files
 EXACT_SRC = $(filter-out $(SRC_DIR)/exact/knn_exact_opencilk.c, $(wildcard $(SRC_DIR)/exact/*.c))
+APPROX_SRC = $(filter-out $(SRC_DIR)/exact/knn_approx_opencilk.c, $(wildcard $(SRC_DIR)/approximate/*.c))
 UTILS_SRC = $(wildcard $(SRC_DIR)/utils/*.c)
 TESTS_SRC = $(wildcard $(SRC_DIR)/tests/*.c)
 MAIN_SRC = $(SRC_DIR)/main.c
-SRC = $(EXACT_SRC) $(UTILS_SRC) $(TESTS_SRC) $(MAIN_SRC)
+SRC = $(EXACT_SRC) $(APPROX_SRC) $(UTILS_SRC) $(TESTS_SRC) $(MAIN_SRC)
 
 # Object files
 EXACT_OBJ = $(patsubst $(SRC_DIR)/exact/%.c, $(BUILD_DIR)/exact/%.o, $(EXACT_SRC))
+APPROX_OBJ = $(patsubst $(SRC_DIR)/approximate/%.c, $(BUILD_DIR)/approximate/%.o, $(APPROX_SRC))
 UTILS_OBJ = $(patsubst $(SRC_DIR)/utils/%.c, $(BUILD_DIR)/utils/%.o, $(UTILS_SRC))
 TESTS_OBJ = $(patsubst $(SRC_DIR)/tests/%.c, $(BUILD_DIR)/tests/%.o, $(TESTS_SRC))
 MAIN_OBJ = $(BUILD_DIR)/main.o
-OBJ = $(EXACT_OBJ) $(UTILS_OBJ) $(TESTS_OBJ) $(MAIN_OBJ)
+OBJ = $(EXACT_OBJ) $(APPROX_OBJ) $(UTILS_OBJ) $(TESTS_OBJ) $(MAIN_OBJ)
 
 # Output executable
 EXEC = knn_project

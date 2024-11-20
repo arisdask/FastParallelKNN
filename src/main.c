@@ -4,6 +4,7 @@
 #include "../include/exact/knn_exact_serial.h"
 #include "../include/exact/knn_exact_pthread.h"
 #include "../include/exact/knn_exact_openmp.h"
+#include "../include/approximate/knn_approx_serial.h"
 #include "../include/tests/tests.h"
 
 int main(int argc, char* argv[]) {
@@ -37,6 +38,10 @@ int main(int argc, char* argv[]) {
             printf("Running knn_exact_openmp with %d threads:\n", num_of_threads);
             generate_knn_exact_results(knn_exact_openmp, data_path, corpus_name, query_name, k, num_of_threads, 3);
             printf("\n");
+
+            printf("Running knn_approx_serial:\n");
+            generate_knn_approx_results(knn_approx_serial, data_path, corpus_name, k, 1, 100, 5);
+            printf("\n");
             printf("\n");
 
             // The results of serial knn have already been tested, using the julia algorithm or via MATLABS knnsearch
@@ -47,6 +52,15 @@ int main(int argc, char* argv[]) {
             printf("Compare knn_exact_serial results with knn_exact_openmp:\n");
             compare_knn_exact_results("results/data_knn/knn_exact_serial.hdf5", "neighbors", "distances", 
                                       "results/data_knn/knn_exact_openmp.hdf5", "neighbors", "distances");
+
+            printf("\n");
+            printf("Compare knn_exact_serial results with knn_approx_serial:\n");
+            // This means that we should also compare our results with the given dataset.
+            compare_knn_approx_results("results/data_knn/knn_exact_serial.hdf5", "neighbors", "distances",
+                                       "results/data_knn/knn_approx_serial.hdf5", "neighbors", "distances");
+            compare_knn_exact_results("results/data_knn/knn_exact_serial.hdf5", "neighbors", "distances",
+                                       "results/data_knn/knn_approx_serial.hdf5", "neighbors", "distances");
+
 
             break;
 
@@ -101,6 +115,20 @@ int main(int argc, char* argv[]) {
 
             }
             break;
+
+        case 5:  // knn_approx_serial
+            printf("Running knn_approx_serial:\n");
+            generate_knn_approx_results(knn_approx_serial, data_path, corpus_name, k, 1, 100, 5);
+            printf("\n");
+
+            if (argc > 7) {
+                // This means that we should also compare our results with the given dataset.
+                compare_knn_approx_results(compare_results, neighbors, distances,
+                    "results/data_knn/knn_approx_serial.hdf5", "neighbors", "distances");
+
+            }
+            break;
+
 
         default:
             fprintf(stderr, "Unknown method: %d\n", method);
