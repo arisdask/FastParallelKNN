@@ -1,40 +1,55 @@
 #include "../../include/tests/tests.h"
 
 int compare_knn_exact_results(const char* data_path1, const char* neighbors_name1, const char* distances_name1, const char* data_path2, const char* neighbors_name2, const char* distances_name2) {
-    int k, query_length;
+    int k1, query_length1, k2, query_length2;
 
-    // Load neighbors and distances for comparison
-    float* idx1 = load_hdf5(data_path1, neighbors_name1, &query_length, &k);
+    // Load ground truth neighbors and distances
+    float* idx1 = load_hdf5(data_path1, neighbors_name1, &query_length1, &k1);
     if (idx1 == NULL) {
-        fprintf(stderr, "compare_knn_exact_results: Failed to load the %s data.\n", neighbors_name1);
+        fprintf(stderr, "compare_knn_approx_results: Failed to load the %s data from %s.\n", neighbors_name1, data_path1);
         return -1;
     }
 
-    float* dst1 = load_hdf5(data_path1, distances_name1, &query_length, &k);
+    float* dst1 = load_hdf5(data_path1, distances_name1, &query_length1, &k1);
     if (dst1 == NULL) {
-        fprintf(stderr, "compare_knn_exact_results: Failed to load the %s data.\n", distances_name1);
+        fprintf(stderr, "compare_knn_approx_results: Failed to load the %s data from %s.\n", distances_name1, data_path1);
         free(idx1);
         return -1;
     }
 
-    float* idx2 = load_hdf5(data_path2, neighbors_name2, &query_length, &k);
+    // Load approximate neighbors and distances
+    float* idx2 = load_hdf5(data_path2, neighbors_name2, &query_length2, &k2);
     if (idx2 == NULL) {
-        fprintf(stderr, "compare_knn_exact_results: Failed to load the %s data.\n", neighbors_name2);
+        fprintf(stderr, "compare_knn_approx_results: Failed to load the %s data from %s.\n", neighbors_name2, data_path2);
         free(idx1);
         free(dst1);
         return -1;
     }
 
-    float* dst2 = load_hdf5(data_path2, distances_name2, &query_length, &k);
+    float* dst2 = load_hdf5(data_path2, distances_name2, &query_length2, &k2);
     if (dst2 == NULL) {
-        fprintf(stderr, "compare_knn_exact_results: Failed to load the %s data.\n", distances_name2);
+        fprintf(stderr, "compare_knn_approx_results: Failed to load the %s data from %s.\n", distances_name2, data_path2);
         free(idx1);
-        free(idx2);
         free(dst1);
+        free(idx2);
         return -1;
     }
 
-    // Exact compare neighbors (indices) and distances
+    // Ensure that datasets are compatible
+    if (query_length1 != query_length2 || k1 != k2) {
+        fprintf(stderr, "compare_knn_approx_results: Dataset dimensions do not match: k1=%d, k2=%d, query_length1=%d, query_length2=%d\n", 
+                    k1, k2, query_length1, query_length2);
+        free(idx1);
+        free(dst1);
+        free(idx2);
+        free(dst2);
+        return -1;
+    }
+
+    long int query_length = query_length1;
+    int k = k1;
+
+    // Exact compare neighbors (indices) and distances:
     int neighbor_errors = 0, distance_errors = 0;
     for (int i = 0; i < query_length; i++) {
         for (int j = 0; j < k; j++) {
@@ -104,7 +119,8 @@ int compare_knn_approx_results(const char* data_path1, const char* neighbors_nam
 
     // Ensure that datasets are compatible
     if (query_length1 != query_length2 || k1 != k2) {
-        fprintf(stderr, "compare_knn_approx_results: Dataset dimensions do not match.\n");
+        fprintf(stderr, "compare_knn_approx_results: Dataset dimensions do not match: k1=%d, k2=%d, query_length1=%d, query_length2=%d\n", 
+                    k1, k2, query_length1, query_length2);
         free(idx1);
         free(dst1);
         free(idx2);
@@ -115,10 +131,8 @@ int compare_knn_approx_results(const char* data_path1, const char* neighbors_nam
     int query_length = query_length1;
     int k = k1;
 
-    // Approximate comparison for neighbors
-    int total_neighbors = query_length * k;
-    int neighbor_hits = 0;
-    int distance_errors = 0;
+    long int total_neighbors = query_length * k;
+    long int neighbor_hits = 0;
 
     for (int i = 0; i < query_length; i++) {
         for (int j = 0; j < k; j++) {
@@ -137,18 +151,11 @@ int compare_knn_approx_results(const char* data_path1, const char* neighbors_nam
             if (neighbor_found) {
                 neighbor_hits++;
             }
-
-            // Compare distances
-            int idx2_pos = i * k + j;
-            if (fabs(dst1[idx1_pos] - dst2[idx2_pos]) > ZERO) {
-                distance_errors++;
-            }
         }
     }
 
     // Output approximate match statistics
-    printf("(Approximate) Neighbors Hit Rate: %f%%, ", 100 * neighbor_hits / (float)total_neighbors);
-    printf("(Exact) Distances Mismatch Percentage: %f%%\n", 100 * distance_errors / (float)total_neighbors);
+    printf("(Approximate) Neighbors Hit Rate: %f%%\n", 100 * neighbor_hits / (float)total_neighbors);
 
     // Cleanup
     free(idx1);

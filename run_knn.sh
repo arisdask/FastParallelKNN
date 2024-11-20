@@ -71,8 +71,8 @@ echo "Running command: $COMMAND"
 # Execute the command
 $COMMAND
 
-# Check again if method is 0 or 9 to run the knn_exact_opencilk or knn_approx_opencilk
-if [[ "$METHOD" -eq 0 || "$METHOD" -eq 9 ]]; then
+# Check again if method is 0 to run the knn_exact_opencilk or knn_approx_opencilk
+if [[ "$METHOD" -eq 0 ]]; then
     echo "Building Project with Makefile.clang..."
     make -f Makefile.clang clean
     make -f Makefile.clang
@@ -82,7 +82,7 @@ if [[ "$METHOD" -eq 0 || "$METHOD" -eq 9 ]]; then
     EXECUTABLE="./knn_project_clang"
 
     # For OpenCilk methods, use the `knn_project_clang` executable
-    COMMAND="$EXECUTABLE $METHOD $NUM_THREADS $DATA_PATH $CORPUS_NAME $QUERY_NAME $K_VALUE"
+    COMMAND="$EXECUTABLE $METHOD $NUM_THREADS $DATA_PATH $CORPUS_NAME $QUERY_NAME $K_VALUE $COMPARE_RESULTS $NEIGHBORS $DISTANCES"
 
     # Display the constructed command
     echo "Running command: $COMMAND"

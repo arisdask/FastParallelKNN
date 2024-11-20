@@ -1,5 +1,24 @@
 #include "../../include/approximate/knn_approx_serial.h"
 
+void merge_k_smallest(int k, const float* existing_distances, const int* existing_indices, 
+                      const float* new_distances, const int* new_indices, 
+                      float* final_distances, int* final_indices) {
+    int i = 0, j = 0, l = 0;
+
+    while (l < k) {
+        if (i < k && (j >= k || existing_distances[i] <= new_distances[j])) {
+            final_distances[l] = existing_distances[i];
+            final_indices[l] = existing_indices[i];
+            i++;
+        } else {
+            final_distances[l] = new_distances[j];
+            final_indices[l] = new_indices[j];
+            j++;
+        }
+        l++;
+    }
+}
+
 void split_dataset(const float* dataset, float* distances_from_hyperplane, 
                             int dataset_length, int d, int num_of_threads, int accuracy, float* _norm_) {
     // Allocate space for midpoints
@@ -69,7 +88,7 @@ void split_dataset(const float* dataset, float* distances_from_hyperplane,
         for (int j = 0; j < d; j++) {
             dot_product += v[j] * (dataset[i * d + j] - mean_points[2 * d + j]);
         }
-        distances_from_hyperplane[i] = dot_product / v_norm;  // Store distance (If dot_product < 0 -> sub-space 1, dot_product > 0 -> sub-space 2)
+        distances_from_hyperplane[i] = dot_product / v_norm;  // Store distance
     }
 
     // Cleanup
@@ -150,46 +169,67 @@ void knn_approx_serial(const float* dataset, int k, int* indices, float* distanc
     // Step 4: Process each subset using exact k-NN
     int* part1_knn_indices = (int*)malloc(part1_count * k * sizeof(int));
     float* part1_knn_distances = (float*)malloc(part1_count * k * sizeof(float));
-    knn_exact_serial(part1_data, part1_data, k, part1_knn_indices, part1_knn_distances, 
-                     part1_count, part1_count, d, num_of_threads);
+    knn_exact_pthread(part1_data, part1_data, k, part1_knn_indices, part1_knn_distances, 
+                     part1_count, part1_count, d, 2);
 
     int* part2_knn_indices = (int*)malloc(part2_count * k * sizeof(int));
     float* part2_knn_distances = (float*)malloc(part2_count * k * sizeof(float));
-    knn_exact_serial(part2_data, part2_data, k, part2_knn_indices, part2_knn_distances, 
-                     part2_count, part2_count, d, num_of_threads);
+    knn_exact_pthread(part2_data, part2_data, k, part2_knn_indices, part2_knn_distances, 
+                     part2_count, part2_count, d, 2);
 
     int* part3_knn_indices = (int*)malloc(part3_count * k * sizeof(int));
     float* part3_knn_distances = (float*)malloc(part3_count * k * sizeof(float));
-    knn_exact_serial(part3_data, part3_data, k, part3_knn_indices, part3_knn_distances, 
-                     part3_count, part3_count, d, num_of_threads);
+    knn_exact_pthread(part3_data, part3_data, k, part3_knn_indices, part3_knn_distances, 
+                     part3_count, part3_count, d, 2);
 
     // Step 5: Assign results directly from the subsets
 
     // Assign results for Part 1
     for (int i = 0; i < part1_count; i++) {
-        int original_idx = part1_indices[i]; // Map back to the original dataset index
+        int original_idx = part1_indices[i]; // Map back to the original dataset index of the sample
         for (int j = 0; j < k; j++) {
-            indices[original_idx * k + j] = part1_knn_indices[i * k + j];
+            indices[original_idx * k + j] = part1_indices[ part1_knn_indices[i * k + j] ]; // Map back to the original dataset index of the sample's neighbor
             distances[original_idx * k + j] = part1_knn_distances[i * k + j];
         }
     }
 
     // Assign results for Part 2
     for (int i = 0; i < part2_count; i++) {
-        int original_idx = part2_indices[i]; // Map back to the original dataset index
+        int original_idx = part2_indices[i];
         for (int j = 0; j < k; j++) {
-            indices[original_idx * k + j] = part2_knn_indices[i * k + j];
+            indices[original_idx * k + j] = part2_indices[ part2_knn_indices[i * k + j] ];
             distances[original_idx * k + j] = part2_knn_distances[i * k + j];
         }
     }
 
-    // Assign results for Part 3
+    // Updated the Part 3 assignment
     for (int i = 0; i < part3_count; i++) {
-        int original_idx = part3_indices[i]; // Map back to the original dataset index
-        for (int j = 0; j < k; j++) {
-            indices[original_idx * k + j] = part3_knn_indices[i * k + j];
-            distances[original_idx * k + j] = part3_knn_distances[i * k + j];
+        int original_idx = part3_indices[i];  // Index in the original dataset
+
+        // Allocate arrays to hold merged distances and indices
+        float* merged_distances = (float*)malloc(k * sizeof(float));
+        int* merged_indices = (int*)malloc(k * sizeof(int));
+
+        if (!merged_distances || !merged_indices) {
+            fprintf(stderr, "Memory allocation failed during result merging.\n");
+            free(merged_distances);
+            free(merged_indices);
+            continue;
         }
+
+        // Merge the k smallest values between the existing and new distances
+        merge_k_smallest(k, 
+                        &distances[original_idx * k], &indices[original_idx * k], 
+                        &part3_knn_distances[i * k], &part3_knn_indices[i * k], 
+                        merged_distances, merged_indices);
+
+        // Update the indices and distances with the merged results
+        memcpy(&distances[original_idx * k], merged_distances, k * sizeof(float));
+        memcpy(&indices[original_idx * k], merged_indices, k * sizeof(int));
+
+        // Free temporary arrays
+        free(merged_distances);
+        free(merged_indices);
     }
 
 

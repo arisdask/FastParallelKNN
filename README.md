@@ -7,16 +7,10 @@
    - [Parallel Dependencies](#parallel-dependencies)
    - [Additional Tools](#additional-tools)
    - [Step-by-Step Installation](#step-by-step-installation)
-3. [Project Structure](#project-structure)
-4. [Code Overview](#code-overview)
-5. [Memory Management](#memory-management)
-6. [Build and Run Project with `.sh` Script](#build-and-run-project-with-sh-script)
-6. [Benchmarking and Testing](#benchmarking-and-testing)
-   - [Julia](#julia)
-   - [MATLAB](#matlab)
-7. [Results](#results)
-8. [Running Approximate All-to-All k-NN](#running-the-approximate-all-to-all-k-nn)
-9. [Troubleshooting](#troubleshooting)
+3. [Code Overview](#code-overview)
+4. [Memory Management](#memory-management)
+5. [Build and Run Project with `.sh` Script](#build-and-run-project-with-sh-script)
+6. [Troubleshooting](#troubleshooting)
 
 
 ## Overview
@@ -131,7 +125,7 @@ The executable files are `./knn_project` and `./knn_project_clang`, depending on
 
 | method | id  |
 |---|---|
-| Run all for specific threads num and compare the results with the `knn_exact_serial` results (which can be manualy tested) |  0 |
+| Test Exact Methods |  0 |
 | knn_exact_serial |  1 |
 | knn_exact_pthread |  2 |
 | knn_exact_openmp |  3 |
@@ -140,7 +134,7 @@ The executable files are `./knn_project` and `./knn_project_clang`, depending on
 | knn_approx_pthread | 6  |
 | knn_approx_openmp |  7 |
 | knn_approx_opencilk | 8  |
-| Final Test |  9 |
+| Test knn_approx_pthreads |  9 |
 
 - **For the OpenCilk we need to set the `CILK_NWORKERS` beforehand**:
   ```bash
@@ -149,16 +143,6 @@ The executable files are `./knn_project` and `./knn_project_clang`, depending on
   ```
 
 To automate the build and execution with different methods and thread counts, use the provided shell scripts. See the [Script Section](#build-and-run-project-with-sh-script) below.
-
-
-## Project Structure
-
-- **data**: Contains HDF5 datasets for testing. We currently use the `sift-128-euclidean.hdf5` ([download](http://ann-benchmarks.com/sift-128-euclidean.hdf5)) which was found in [this](https://github.com/erikbern/ann-benchmarks) github repo. *Add your datasets in this folder for easy access.*
-- **include**: Header files grouped by functionality (exact/approximate algorithms, utilities).
-- [**julia**](#julia): Scripts with the initial algorithm design, for testing and visualizing algorithms.
-- [**matlab**](#matlab): Scripts for comparing results with MATLAB.
-- [**results**](#results): Directory for benchmark results, logs, and plots.
-- **src**: Source code for various k-NN implementations and utility functions.
 
 
 ## Code Overview
@@ -173,7 +157,7 @@ To automate the build and execution with different methods and thread counts, us
 
 ### 2. Approximate k-NN Implementations
 
-- **Serial Version**: Implements approximate all-to-all k-NN using techniques like Locality-Sensitive Hashing (LSH).
+- **Serial Version**: Implements approximate all-to-all k-NN using techniques explained in the report.pdf.
 - **Parallel Versions**: Parallelized for better performance.
 
 ### 3. Utility Functions
@@ -269,58 +253,9 @@ The `run_knn.sh` shell script is designed to facilitate running the `knn_project
 
 7. **Output**: The script will display the constructed command before execution.
 
-## Benchmarking and Testing
-
-### Julia
-
-Julia scripts in `julia/knnAlgorithms` mimic the C algorithms, providing clear algorithmic explanations rather than optimized implementations. These scripts serve as a functional description of the C code.
-
-To run them:
-```bash
-julia julia/knnAlgorithms/main.jl
-```
-
-### MATLAB
-
-To compare with MATLAB, use:
-```matlab
-run('matlab/knnBenchmark.m')
-```
-
-## Results
-
-The `results` directory contains:
-
-- **Benchmarks**: Raw performance data.
-- **data_kkn**: Results of `run_knn_project.sh`
-- **Logs**: Execution logs for analysis.
-- **Plots**: Graphical representations of k-NN accuracy and speed.
-
 ## Troubleshooting
 
 - **Compilation Errors**: Ensure all dependencies are correctly installed (`libhdf5`, `libopenblas`, `libgsl`).
 - **Dataset Issues**: Check that HDF5 datasets are formatted and accessible.
 - **OpenCilk Problems**: Ensure the correct `clang` version is installed and available in the system's PATH.
 
-## Running the Approximate All-to-All k-NN
-
-The approximate versions are parallelized for efficiency. To run them:
-
-1. Choose between serial or parallel implementation (OpenMP, OpenCilk, or Pthreads).
-2. Adjust parameters (like the number of threads) to optimize for your system.
-3. Use `plotBenchmarks.jl` or MATLAB to analyze results and compare with exact solutions.
-
-
-## Running the approximate all-to-all k-NN
-
-(Tell what is the method you use, especially when you parallelize the code)
-
-(Check if my results are correct)
-
-(Calculation speed / acceleration / threads that I use)
-
-(Plots)
-
-(compare with matlab)
-
-(Computer specs)

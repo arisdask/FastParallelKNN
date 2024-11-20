@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 
             // The results of serial knn have already been tested, using the julia algorithm or via MATLABS knnsearch
             printf("Compare knn_exact_serial results with knn_exact_pthread:\n");
-            compare_knn_exact_results("results/data_knn/knn_exact_serial.hdf5", "neighbors", "distances", 
+            compare_knn_exact_results(compare_results, neighbors, distances,
                                       "results/data_knn/knn_exact_opencilk.hdf5", "neighbors", "distances");
 
             break;
@@ -54,7 +54,14 @@ int main(int argc, char* argv[]) {
             }
             break;
 
-        // Add other cases for methods 5 to 9
+        case 8:
+
+            break;
+
+        
+        case 9:
+
+            break;
 
         default:
             fprintf(stderr, "Unknown method: %d\n", method);
