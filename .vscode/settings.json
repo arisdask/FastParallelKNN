@@ -1,0 +1,30 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "gsl_sort_float.h": "c",
+        "float.h": "c",
+        "data_io.h": "c",
+        "stdlib.h": "c",
+        "array": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp",
+        "atomic": "c",
+        "string": "c",
+        "mem_info.h": "c",
+        "knn_exact_serial.h": "c",
+        "time.h": "c",
+        "knn_exact_pthread.h": "c",
+        "tests.h": "c",
+        "knn_exact_openmp.h": "c",
+        "stdio.h": "c",
+        "distance.h": "c",
+        "omp.h": "c",
+        "verify_knn_results_test.h": "c",
+        "knn_exact_opencilk.h": "c",
+        "math.h": "c",
+        "knn_approx_serial.h": "c",
+        "knn_approx_pthread.h": "c",
+        "pthread.h": "c"
+    }
+}

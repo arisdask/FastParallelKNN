@@ -16,7 +16,7 @@ BUILD_DIR = build
 
 # Source files
 EXACT_SRC = $(filter-out $(SRC_DIR)/exact/knn_exact_opencilk.c, $(wildcard $(SRC_DIR)/exact/*.c))
-APPROX_SRC = $(filter-out $(SRC_DIR)/exact/knn_approx_opencilk.c, $(wildcard $(SRC_DIR)/approximate/*.c))
+APPROX_SRC = $(filter-out $(SRC_DIR)/approximate/knn_approx_opencilk.c, $(wildcard $(SRC_DIR)/approximate/*.c))
 UTILS_SRC = $(wildcard $(SRC_DIR)/utils/*.c)
 TESTS_SRC = $(wildcard $(SRC_DIR)/tests/*.c)
 MAIN_SRC = $(SRC_DIR)/main.c
