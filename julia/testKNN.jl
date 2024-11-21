@@ -1,4 +1,4 @@
-include("knnExactSerial.jl")
+include("knnAlgorithms/knnExactSerial.jl")
 
 global ZERO = 0.01
 
