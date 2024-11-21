@@ -33,7 +33,7 @@ for i in 1:1:size(neighbors, 1)
         end
     end
 end
-println("Neighbors Mismatch Percentage: $(100 - err_cnt * 100 / (k * size(neighbors, 1)))%")
+println("Neighbors Mismatch Percentage: $(100 - neighbor_errors * 100 / (k * size(neighbors, 1)))%")
 println(" ")
 
 for i in 1:1:size(neighbors, 1)
@@ -43,7 +43,7 @@ for i in 1:1:size(neighbors, 1)
         end
     end
 end
-println("Distances Mismatch Percentage: $(100 - err_cnt * 100 / (k * size(neighbors, 1)))%")
+println("Distances Mismatch Percentage: $(100 - distance_errors * 100 / (k * size(neighbors, 1)))%")
 
 neighbors = nothing
 distances = nothing
