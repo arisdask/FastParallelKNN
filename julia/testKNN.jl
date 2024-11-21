@@ -19,8 +19,8 @@ C = nothing
 Q = nothing
 GC.gc()
 
-neighbors = copy(load_hdf5(joinpath(@__DIR__, "../../data/sift-128-euclidean.hdf5"), "neighbors")')
-distances = copy(load_hdf5(joinpath(@__DIR__, "../../data/sift-128-euclidean.hdf5"), "distances")')
+neighbors = copy(load_hdf5(joinpath(@__DIR__, "../data/sift-128-euclidean.hdf5"), "neighbors")')
+distances = copy(load_hdf5(joinpath(@__DIR__, "../data/sift-128-euclidean.hdf5"), "distances")')
 
 neighbor_errors = 0
 distance_errors = 0
