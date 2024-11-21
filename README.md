@@ -11,6 +11,7 @@
 4. [Memory Management](#memory-management)
 5. [Build and Run Project with `.sh` Script](#build-and-run-project-with-sh-script)
 6. [Troubleshooting](#troubleshooting)
+7. [PC Specs](#pc-specs)
 
 
 ## Overview
@@ -251,4 +252,26 @@ The `run_knn.sh` shell script is designed to facilitate running the `knn_project
 - **Compilation Errors**: Ensure all dependencies are correctly installed (`libhdf5`, `libopenblas`, `libgsl`).
 - **Dataset Issues**: Check that HDF5 datasets are formatted and accessible.
 - **OpenCilk Problems**: Ensure the correct `clang` version is installed and available in the system's PATH.
+
+## PC Specs
+
+Here are some basic spec info of the computer in which this project run: 
+
+CPU:
+- Architecture:             x86_64
+  - CPU op-mode(s):         32-bit, 64-bit
+  - Address sizes:          48 bits physical, 48 bits virtual
+  - Byte Order:             Little Endian
+- CPU(s):                   8
+  - On-line CPU(s) list:    0-7
+- Vendor ID:                AuthenticAMD
+  - Model name:             AMD Ryzen 7 4700U with Radeon Graphics
+- Caches (sum of all):      
+  - L1d:                    256 KiB (8 instances)
+  - L1i:                    256 KiB (8 instances)
+  - L2:                     4 MiB (8 instances)
+  - L3:                     8 MiB (2 instances)
+
+RAM:
+- MemTotal:       15715508 kB
 
