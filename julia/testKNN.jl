@@ -7,14 +7,14 @@ global ZERO = 0.01
 # C: Matrix of size (n_samples, d) where each row is a data point
 # Q: Matrix of size (m_samples, d) where each row is a query point
 # k: Number of nearest neighbors to find
-C = copy(load_hdf5(joinpath(@__DIR__, "../../data/sift-128-euclidean.hdf5"), "train")')
-Q = copy(load_hdf5(joinpath(@__DIR__, "../../data/sift-128-euclidean.hdf5"), "test")')
+C = copy(load_hdf5(joinpath(@__DIR__, "../data/sift-128-euclidean.hdf5"), "train")')
+Q = copy(load_hdf5(joinpath(@__DIR__, "../data/sift-128-euclidean.hdf5"), "test")')
 k = 5
 
 global idx = NaN
 global dst = NaN
 
-@time idx, dst = knn_exact_serial(C, Q, k, -1)
+@time idx, dst = knn_exact_serial(C, Q, k, +1)
 C = nothing
 Q = nothing
 GC.gc()
