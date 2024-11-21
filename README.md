@@ -105,13 +105,13 @@ The executable files are `./knn_project` and `./knn_project_clang`, depending on
 ```
 
 #### **Input Arguments Explanation**
-1. **method**: Specifies which implementation of the k-NN search you want to run. This can include exact or approximate methods, parallel or serial versions. Refer to the method ID table for the correct values.
+1. **method**: Specifies which implementation of the k-NN search you want to run (exact or approximate). Refer to the method ID table for the correct values.
    
 2. **num_of_threads**: The number of threads you want to use for parallel execution. This is ignored for serial implementations.
 
 3. **data_path**: The path to the `.hdf5` file that contains the datasets. The program will open this file to read the specified datasets.
 
-4. **corpus_name**: The name of the dataset within the `.hdf5` file that represents the corpus (the reference set of data points).
+4. **corpus_name**: The name of the dataset within the `.hdf5` file that represents the corpus.
 
 5. **query_name**: The name of the dataset within the `.hdf5` file that represents the query set. If the query set is the same as the corpus, this should be the same as `corpus_name`.
 
@@ -125,16 +125,10 @@ The executable files are `./knn_project` and `./knn_project_clang`, depending on
 
 | method | id  |
 |---|---|
-| Test Exact Methods |  0 |
-| knn_exact_serial |  1 |
-| knn_exact_pthread |  2 |
-| knn_exact_openmp |  3 |
-| knn_exact_opencilk | 4  |
-| knn_approx_serial |  5 |
-| knn_approx_pthread | 6  |
-| knn_approx_openmp |  7 |
-| knn_approx_opencilk | 8  |
-| Test knn_approx_pthreads |  9 |
+|  Run all the *exact* knn functions and evaluate/compare the results based on the given dataset |  0 |
+| Run all the *approx* knn functions and evaluate/compare the results (based on the exact results of an exact knn). The approx solutions solve only the all-to-all k-NN (C == Q) |  1 |
+| Random Data Test for knn_approx_pthread (Playground) |  2 |
+| Add your own custom tests here! |  3 |
 
 - **For the OpenCilk we need to set the `CILK_NWORKERS` beforehand**:
   ```bash
@@ -208,7 +202,7 @@ The memory management provided by `mem_info.h` is essential for handling large-s
 
 ## Build and Run Project with `.sh` Script
 
-***Warning: Make sure that the datasets we ask to call are actually stored inside the `/data` folder, otherwise they need to be downloaded/stored there - or you can change the filepath and the dataset names to call your own.***
+***Warning: Make sure that the datasets we ask to call are actually stored inside the `/data` folder, otherwise they need to be downloaded/stored there - or you can change the filepath and the dataset names to call your own.*** (You can find the `sift-128-euclidean.hdf5` inside this [repo](https://github.com/erikbern/ann-benchmarks))
 
 The `run_knn.sh` shell script is designed to facilitate running the `knn_project` executable by handling user inputs and constructing the command accordingly. Here are some key details to include:
 
@@ -223,30 +217,29 @@ The `run_knn.sh` shell script is designed to facilitate running the `knn_project
    
    The script will determine whether to use `knn_project` or `knn_project_clang` based on the selected method.
 
-3. **Method Selection**: The script automatically decides which executable to run based on the `method` value:
+3. **Method Selection**: The script automatically decides which executable(s) to run based on the `method` value:
    
-   - If `method` is `4` or `8`, the project is built using Clang and `knn_project_clang` is executed.
-   - If `method` is `0` or `9`, the script handles all exact and approximate tests accordingly.
-   - For all other methods (\*\_opencilk excluded), the project is built with GCC and `knn_project` is executed.
+   - If `method` is `0`: Built and Run all the **exact** knn functions and evaluate/compare the results based on the given dataset
+   - If `method` is `1`: Built and Run all the **approx** knn functions and evaluate/compare the results (based on the exact results of an exact knn). Keep in mind that the approximate solutions solve only the all-to-all k-NN problem in which $C == Q$
+   - Check the comments in `run_knn.sh` for more info
 
 4. **Script Structure**:
    
-   - **Input Validation**: The script checks that all necessary arguments are provided before proceeding.
    - **Command Construction**: Based on the user inputs, it constructs the appropriate command.
    - **Execution**: The constructed command is displayed and then executed.
    
 5. **Example Commands**:
    
-   - **k-NN compare results of all methods**:
+   - **k-NN exact functions test**:
      
      ```
-     ./run_knn.sh 0 4 data/sift-128-euclidean.hdf5 train test 10
+     ./run_knn.sh 0 5 data/sift-128-euclidean.hdf5 train test 100 data/sift-128-euclidean.hdf5 neighbors distances
      ```
    
-   - **Running an Exact Parallel Method with Pthreads**:
+   - **k-NN exact functions test**:
      
      ```
-     ./run_knn.sh 2 8 data/sift-128-euclidean.hdf5 train test 10
+     ./run_knn.sh 1 8 null null null 100
      ```
 
 6. **Dependencies**: The script relies on correct installation of dependencies like OpenBLAS, GSL, HDF5, and OpenCilk for building and running the executables. *Make sure these are installed and configured properly.*
