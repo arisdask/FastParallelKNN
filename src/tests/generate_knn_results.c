@@ -36,8 +36,7 @@ int generate_knn_exact_results(knn_exact_t knnsearch, const char* data_path, con
 
     // Calculate elapsed time in seconds
     double time_taken = (end.tv_sec - start.tv_sec) + ((end.tv_usec - start.tv_usec) / 1e6);
-    // printf("generate_knn_exact_results: k-NN search elapsed time is %lf seconds\n", time_taken);
-    printf("Running time: %lf seconds\n ", time_taken);
+    printf("Running time: %lf seconds, Queries per second: %lf\n ", time_taken, (query_length / time_taken));
 
     // Cleanup test and train datasets
     free(corpus);
@@ -97,8 +96,7 @@ int generate_knn_approx_results(knn_approx_t knnsearch, const char* data_path, c
 
     // Calculate elapsed time in seconds
     double time_taken = (end.tv_sec - start.tv_sec) + ((end.tv_usec - start.tv_usec) / 1e6);
-    // printf("generate_knn_exact_results: k-NN search elapsed time is %lf seconds\n", time_taken);
-    printf("Running time: %lf seconds\n ", time_taken);
+    printf("Running time: %lf seconds, Queries per second: %lf\n ", time_taken, (dataset_length / time_taken));
 
     // Cleanup test and train datasets
     free(dataset);

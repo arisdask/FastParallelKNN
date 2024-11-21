@@ -3,21 +3,18 @@
 # This script runs the `knn_project` executable with the specified parameters provided as command-line arguments.
 # Usage examples:
 #   ./run_knn.sh [method] [num_of_threads] [data_path] [corpus_name] [query_name] [k] [compare_results (optional)] [neighbors (optional)] [distances (optional)]
-#       -> Add *all* the optional values to compare the k-NN's results with your own results:
-#   ./run_knn.sh 4 3 data/sift-128-euclidean.hdf5 train test 100 data/sift-128-euclidean.hdf5 neighbors distances
-#       -> Add *none* of the optional values to just run the code and store the output matrices in the results/data_knn:
-#   ./run_knn.sh 2 5 data/sift-128-euclidean.hdf5 test test 5
+#       -> Add *all* the optional values to compare the k-NN's results with the expected (for method 0 only!)
+#       -> Add *none* of the optional values when you use auto-generated random dataset (methods 1 and 2)
 
-#  0 - Run All for specific num_of_threads and compare the results with the `knn_exact_serial` results (which can be manualy tested)
-#  1 - knn_exact_serial
-#  2 - knn_exact_pthread
-#  3 - knn_exact_openmp
-#  4 - knn_exact_opencilk
-#  5 - knn_approx_serial
-#  6 - knn_approx_pthread
-#  7 - knn_approx_openmp
-#  8 - knn_approx_opencilk
-#  9 - Run Approx Tests
+# Ex: ./run_knn.sh 0 4 data/sift-128-euclidean.hdf5 train test 100 data/sift-128-euclidean.hdf5 neighbors distances
+# Ex: ./run_knn.sh 1 4 null null null 100
+# Ex: ./run_knn.sh 2 5 null null null 100
+
+#  0 - Run all the *exact* knn functions and evaluate/compare the results based on the given dataset
+#  1 - Run all the *approx* knn functions and evaluate/compare the results (based on the exact results of an exact knn)
+#      Keep in mind that the approximate solutions solve only the all-to-all k-NN problem in which C == Q
+#  2 - Random Data Test for knn_approx_pthread (Playground)
+#  3 - You can add your own custom tests here!
 
 # Check the number of arguments
 if [ "$#" -lt 6 ]; then
@@ -36,14 +33,27 @@ COMPARE_RESULTS=${7:-""}
 NEIGHBORS=${8:-""}
 DISTANCES=${9:-""}      # Optional argument for distances dataset
 
-# Validate the method input
-if ! [[ "$METHOD" =~ ^[0-9]$ ]] || [ "$METHOD" -lt 0 ] || [ "$METHOD" -gt 9 ]; then
-    echo "Error: Method should be a number from 0 to 9."
-    exit 1
-fi
+
+echo "Building Project with Makefile.gcc..."
+make -f Makefile.gcc clean
+make -f Makefile.gcc
+echo "Building with Makefile.gcc: Done"
+
+# Use the default `knn_project` executable
+EXECUTABLE="./knn_project"
+COMMAND="$EXECUTABLE $METHOD $NUM_THREADS $DATA_PATH $CORPUS_NAME $QUERY_NAME $K_VALUE $COMPARE_RESULTS $NEIGHBORS $DISTANCES"
+
+echo " "
+# Display the constructed command
+echo "Running command: $COMMAND"
+echo " "
+
+# Execute the command
+$COMMAND
+echo " "
 
 # Determine which executable to run
-if [[ "$METHOD" -eq 4 || "$METHOD" -eq 8 ]]; then
+if [[ "$METHOD" -eq 0 || "$METHOD" -eq 1 ]]; then
     # Build project with Clang
     echo "Building Project with Makefile.clang..."
     make -f Makefile.clang clean
@@ -53,40 +63,14 @@ if [[ "$METHOD" -eq 4 || "$METHOD" -eq 8 ]]; then
     # For OpenCilk methods, use the `knn_project_clang` executable
     export CILK_NWORKERS=$NUM_THREADS
     EXECUTABLE="./knn_project_clang"
-else
-    echo "Building Project with Makefile.gcc..."
-    make -f Makefile.gcc clean
-    make -f Makefile.gcc
-    echo "Building with Makefile.gcc: Done"
-
-    # Use the default `knn_project` executable
-    EXECUTABLE="./knn_project"
-fi
-
-COMMAND="$EXECUTABLE $METHOD $NUM_THREADS $DATA_PATH $CORPUS_NAME $QUERY_NAME $K_VALUE $COMPARE_RESULTS $NEIGHBORS $DISTANCES"
-
-# Display the constructed command
-echo "Running command: $COMMAND"
-
-# Execute the command
-$COMMAND
-
-# Check again if method is 0 to run the knn_exact_opencilk or knn_approx_opencilk
-if [[ "$METHOD" -eq 0 ]]; then
-    echo "Building Project with Makefile.clang..."
-    make -f Makefile.clang clean
-    make -f Makefile.clang
-    echo "Building with Makefile.clang: Done"
-
-    export CILK_NWORKERS=$NUM_THREADS
-    EXECUTABLE="./knn_project_clang"
-
-    # For OpenCilk methods, use the `knn_project_clang` executable
     COMMAND="$EXECUTABLE $METHOD $NUM_THREADS $DATA_PATH $CORPUS_NAME $QUERY_NAME $K_VALUE $COMPARE_RESULTS $NEIGHBORS $DISTANCES"
 
+    echo " "
     # Display the constructed command
     echo "Running command: $COMMAND"
+    echo " "
 
     # Execute the command
     $COMMAND
+    echo " "
 fi

@@ -2,6 +2,7 @@
 #define KNN_APPROX_OPENCILK_H
 
 #include <cilk/cilk.h>
+#include <cilk/cilk_api.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,7 +26,7 @@
  * 
  * @return                  None (results are stored in the pre-allocated arrays `indices` and `distances`)
  */
-void knn_approx_opencilk(const float* dataset, int k, int* indices, float* distances,
+void knn_approx_opencilk(const float* dataset, int k, int* indices, float* distances, 
                          int dataset_length, int d, int num_of_threads, int accuracy);
 
 #endif // KNN_APPROX_OPENCILK_H

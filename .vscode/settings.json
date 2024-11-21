@@ -25,6 +25,7 @@
         "math.h": "c",
         "knn_approx_serial.h": "c",
         "knn_approx_pthread.h": "c",
-        "pthread.h": "c"
+        "pthread.h": "c",
+        "knn_approx_opencilk.h": "c"
     }
 }

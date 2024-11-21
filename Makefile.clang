@@ -18,14 +18,14 @@ INCLUDE_DIR = include
 BUILD_DIR = build
 
 # Create a list of source files
-EXACT_SRC = $(SRC_DIR)/exact/knn_exact_serial.c $(SRC_DIR)/exact/knn_exact_opencilk.c
+EXACT_SRC = $(SRC_DIR)/exact/knn_exact_serial.c $(SRC_DIR)/exact/knn_exact_opencilk.c $(SRC_DIR)/approximate/knn_approx_opencilk.c
 UTILS_SRC = $(wildcard $(SRC_DIR)/utils/*.c)
 TESTS_SRC = $(wildcard $(SRC_DIR)/tests/*.c)
 MAIN_SRC = $(SRC_DIR)/main_opencilk.c
 SRC = $(EXACT_SRC) $(UTILS_SRC) $(TESTS_SRC) $(MAIN_SRC)
 
 # Create a list of object files (matching the source file structure)
-EXACT_OBJ = $(BUILD_DIR)/exact/knn_exact_serial.o $(BUILD_DIR)/exact/knn_exact_opencilk.o
+EXACT_OBJ = $(BUILD_DIR)/exact/knn_exact_serial.o $(BUILD_DIR)/exact/knn_exact_opencilk.o  $(BUILD_DIR)/approximate/knn_approx_opencilk.o
 UTILS_OBJ = $(patsubst $(SRC_DIR)/utils/%.c, $(BUILD_DIR)/utils/%.o, $(UTILS_SRC))
 TESTS_OBJ = $(patsubst $(SRC_DIR)/tests/%.c, $(BUILD_DIR)/tests/%.o, $(TESTS_SRC))
 MAIN_OBJ = $(BUILD_DIR)/main_opencilk.o

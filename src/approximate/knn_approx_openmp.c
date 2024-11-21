@@ -1,8 +1,7 @@
-#include <omp.h>
-#include "../../include/approximate/knn_approx_serial.h"
+#include "../../include/approximate/knn_approx_openmp.h"
 
 void knn_approx_openmp(const float* dataset, int k, int* indices, float* distances, 
-                       int dataset_length, int d, int num_of_threads) {
+                       int dataset_length, int d, int num_of_threads, int accuracy) {
     // Initialize distances and indices arrays
     #pragma omp parallel for num_threads(num_of_threads)
     for (int i = 0; i < dataset_length * k; i++) {

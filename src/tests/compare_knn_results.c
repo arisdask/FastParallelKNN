@@ -68,8 +68,8 @@ int compare_knn_exact_results(const char* data_path1, const char* neighbors_name
     }
 
     // Output mismatch percentages
-    printf("(Exact) Neighbors Mismatch Percentage: %f%%, ", 100 * neighbor_errors / (float)(query_length * k));
-    printf("(Exact) Distances Mismatch Percentage: %f%%\n", 100 * distance_errors / (float)(query_length * k));
+    printf("Exact: Neighbors Mismatch Percentage: %f%%, ", 100 * neighbor_errors / (float)(query_length * k));
+    printf("Distances Mismatch Percentage: %f%%\n", 100 * distance_errors / (float)(query_length * k));
 
     // Cleanup
     free(idx1);
@@ -134,10 +134,15 @@ int compare_knn_approx_results(const char* data_path1, const char* neighbors_nam
     long int total_neighbors = query_length * k;
     long int neighbor_hits = 0;
 
+    double total_exact_knn_dst = 0;
+    double total_approx_knn_dst = 0;
     for (int i = 0; i < query_length; i++) {
         for (int j = 0; j < k; j++) {
             int idx1_pos = i * k + j;
             int neighbor_found = 0;
+
+            total_exact_knn_dst  += (double)dst1[idx1_pos];
+            total_approx_knn_dst += (double)dst2[idx1_pos];
 
             // Check if idx1[i][j] is present in idx2[i][:]
             for (int l = 0; l < k; l++) {
@@ -155,7 +160,8 @@ int compare_knn_approx_results(const char* data_path1, const char* neighbors_nam
     }
 
     // Output approximate match statistics
-    printf("(Approximate) Neighbors Hit Rate: %f%%\n", 100 * neighbor_hits / (float)total_neighbors);
+    printf("Approximate: Neighbors Hit Rate: %lf%%, ", 100 * neighbor_hits / (double)total_neighbors);
+    printf("k-NN Average Distances Rate (approx/exact): %lf\n", total_approx_knn_dst / total_exact_knn_dst);
 
     // Cleanup
     free(idx1);
