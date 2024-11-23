@@ -186,7 +186,7 @@ The `mem_info.h` header plays a crucial role in managing memory usage throughout
         
         `get_usable_memory` always returns a constant prediction of the usable memory, `USABLE_MEM_PREDICTION`.
 
-    ***Set:*** `USE_CONST_MEMORY` == 1 and `USABLE_MEM_PREDICTION` == [available **Kilobytes** prediction based on the system's specs]. A safe but still efficient prediction is to choose: $(3/8) * [Your\ System's\ Total\ RAM]$ when you run the exact functions and $(3/16) * [Your\ System's\ Total\ RAM]$ when you run the approximate ones (for no more than 8 threads). In case you want to test for more number of threads consider to lower the value even more.  
+    ***Set:*** `USE_CONST_MEMORY` == 1 and `USABLE_MEM_PREDICTION` == [available **Kilobytes** prediction based on the system's specs]. A safe but still efficient prediction is to choose: $(3/8) * [Your\ System's\ Total\ RAM]$ when you run the exact functions and $(3/16) * [Your\ System's\ Total\ RAM]$ when you run the approximate ones (for no more than 8 threads and large datasets). In case you want to test for more number of threads consider to lower the value even more.  
 
     ***Warning:*** The computer which was used throughout the development of the project had $16GB$ of total RAM, so there is `USE_CONST_MEMORY` == 1 and `USABLE_MEM_PREDICTION` == 3000000, to run the approximate functions (the exact function can run also with 6000000). Change this value according to your own system's specs (and according to whether you run the exact or the approximate implementations). It is advised to start with smaller values and observe how close to fail the memory allocation is. 
 
@@ -198,7 +198,8 @@ Not allowing to change this memory value is not ideal because running the proces
 
 ### Practical Impact
 
-If the program crashes with the current number of threads, consider reducing the `USABLE_MEM_PREDICTION` value.
+If the program crashes with the current number of threads, consider **reducing the `USABLE_MEM_PREDICTION` value**. This adjustment ensures that the memory usage remains within safe limits for the hardware configuration. On the other hand, if you aim to achieve better performance and have sufficient memory resources, you can **increase the `USABLE_MEM_PREDICTION` value** to allow the program to utilize more memory efficiently. (See comments to each test case in `main.c` to set the value correctly).
+
 
 
 ## Build and Run Project with `.sh` Script
@@ -218,11 +219,11 @@ The `run_knn.sh` shell script is designed to facilitate running the `knn_project
    
    The script will determine whether to use `knn_project` or `knn_project_clang` based on the selected method.
 
-3. **Method Selection**: The script automatically decides which executable(s) to run based on the `method` value:
+3. **Method/Test Selection**: The script automatically decides which executable(s) to run based on the `method` value:
    
    - If `method` is `0`: Built and Run all the **exact** knn functions and evaluate/compare the results based on the given dataset
-   - If `method` is `1`: Built and Run all the **approx** knn functions and evaluate/compare the results (based on the exact results of an exact knn). Keep in mind that the approximate solutions solve only the all-to-all k-NN problem in which $C == Q$
-   - If `method` is `3`: Built and Run all the **approx** knn functions for the `sift-128-euclidean.hdf5` having as corpus = query the train dataset ($10^6$ x $128$) and evaluate/compare the results based on an exact method.
+   - If `method` is `1`: Built and Run all the **approx** knn functions and evaluate/compare the results (based on the exact results of an exact knn). Keep in mind that the approximate solutions solve only the all-to-all k-NN problem in which $C == Q$. (*This test and test `2` are just 'playground' tests and they do not highlight the approximate method's advantages*).
+   - If `method` is `3`: Built and Run all the **approx** knn functions for the `sift-128-euclidean.hdf5` having as corpus = query the train dataset ($10^6$ x $128$) and evaluate/compare the results based on an exact method. (The results of this test are presented in the [Timestamps and PC Specs](#timestamps-and-pc-specs) section)
    - Check the comments in `run_knn.sh` for more info
 
 4. **Script Structure**:

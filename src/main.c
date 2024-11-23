@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) {
                  // and evaluates/compares the results based on the results of the knn_exact_pthread
 
             // In case the program crashes the `USABLE_MEM_PREDICTION` inside the mem_info.h should become even lower. 
+            // For the given `data_length` and `dim`: USABLE_MEM_PREDICTION = 5000000 is a safe choice for a 16GB-memeory system.
             srand(time(NULL));
             data_length = 100000 + rand() % 50000;
             dim = 150 + rand() % 50;
@@ -126,6 +127,7 @@ int main(int argc, char* argv[]) {
         case 2:  // Random Data Test for knn_approx_pthread (Playground)
 
             // In case the program crashes the `USABLE_MEM_PREDICTION` inside the mem_info.h should become even lower.
+            // For the given `data_length` and `dim`: USABLE_MEM_PREDICTION = 5000000 is a safe choice for a 16GB-memeory system.
             srand(time(NULL));
             data_length = 100000 + rand() % 50000;
             dim = 150 + rand() % 50;
