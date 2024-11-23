@@ -39,6 +39,10 @@ int main(int argc, char* argv[]) {
     // 3 - You can add your own custom tests here!
     switch (method) {
         case 0:    // Runs all the exact knn functions and evaluates/compares the results based on a given dataset
+            // To run the exact methods you can set the `USABLE_MEM_PREDICTION` inside the mem_info.h up to
+            // 6000000 for a system that has 16GB of total memory (see README for a more detailed analysis).
+            // In case the program crashes the `USABLE_MEM_PREDICTION` should become even lower. 
+
             printf("Running knn_exact_serial:\n");
             generate_knn_exact_results(knn_exact_serial, data_path, corpus_name, query_name, k, 1, 1);
             printf("\n");
@@ -70,6 +74,8 @@ int main(int argc, char* argv[]) {
 
         case 1:  // Runs all the approx knn functions (keep in mind that the approximate solutions solve only the all-to-all k-NN problem in which C == Q) 
                  // and evaluates/compares the results based on the results of the knn_exact_pthread
+
+            // In case the program crashes the `USABLE_MEM_PREDICTION` inside the mem_info.h should become even lower. 
             srand(time(NULL));
             data_length = 100000 + rand() % 50000;
             dim = 150 + rand() % 50;
@@ -118,6 +124,8 @@ int main(int argc, char* argv[]) {
             break;
 
         case 2:  // Random Data Test for knn_approx_pthread (Playground)
+
+            // In case the program crashes the `USABLE_MEM_PREDICTION` inside the mem_info.h should become even lower.
             srand(time(NULL));
             data_length = 100000 + rand() % 50000;
             dim = 150 + rand() % 50;
@@ -141,14 +149,51 @@ int main(int argc, char* argv[]) {
             printf("\n");
             printf("\n");
 
-            // We already have test that the knn_exact_pthread gives correct results:
+            // We already have test that the knn_exact_pthread gives correct results.
             compare_knn_approx_results("results/data_knn/knn_exact_pthread.hdf5", "neighbors", "distances",
                     "results/data_knn/knn_approx_pthread.hdf5", "neighbors", "distances");
             printf("\n");
             
             break;
 
-        case 3:  // Write your own tests here:
+        case 3:
+            // Download `sift-128-euclidean.hdf5` in `data/` folder to run the approximate knn for the train (or the test) dataset.
+            // Make sure to correctly change the datapaths or dataset names in case you want to run a test for a different dataset.
+
+            // For the approximate tests below, the `USABLE_MEM_PREDICTION` inside the mem_info.h should be <=3000000 (kByte) 
+            // for a system that has 16GB of total memory (for more than 8 threads this value should become even lower - see README).
+            // In case the program crashes the `USABLE_MEM_PREDICTION` should become even lower. 
+
+            printf("Running knn_exact_pthread with %d threads:\n", num_of_threads);
+            generate_knn_exact_results(knn_exact_pthread, "data/sift-128-euclidean.hdf5", "train", "train", k, num_of_threads, 2);
+            printf("\n");
+
+            printf("Running knn_approx_serial:\n");
+            generate_knn_approx_results(knn_approx_serial, "data/sift-128-euclidean.hdf5", "train", k, num_of_threads, 0, 5);
+            printf("\n");
+
+            printf("Running knn_approx_pthread with %d threads:\n", num_of_threads);
+            generate_knn_approx_results(knn_approx_pthread, "data/sift-128-euclidean.hdf5", "train", k, num_of_threads, 0, 6);
+            printf("\n");
+
+            printf("Running knn_approx_openmp with %d threads:\n", num_of_threads);
+            generate_knn_approx_results(knn_approx_openmp, "data/sift-128-euclidean.hdf5", "train", k, num_of_threads, 0, 7);
+            printf("\n");
+            printf("\n");
+
+            // We already have test that the knn_exact_pthread gives correct results.
+            printf("Compare knn_approx_serial results with expected:\n");
+            compare_knn_approx_results("results/data_knn/knn_exact_pthread.hdf5", "neighbors", "distances",
+                    "results/data_knn/knn_approx_serial.hdf5", "neighbors", "distances");
+
+            printf("Compare knn_approx_pthread results with expected:\n");
+            compare_knn_approx_results("results/data_knn/knn_exact_pthread.hdf5", "neighbors", "distances",
+                    "results/data_knn/knn_approx_pthread.hdf5", "neighbors", "distances");
+
+            printf("Compare knn_approx_openmp results with expected:\n");
+            compare_knn_approx_results("results/data_knn/knn_exact_pthread.hdf5", "neighbors", "distances",
+                    "results/data_knn/knn_approx_openmp.hdf5", "neighbors", "distances");
+            printf("\n");
             
             break;
 

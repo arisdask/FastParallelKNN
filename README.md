@@ -11,12 +11,12 @@
 4. [Memory Management](#memory-management)
 5. [Build and Run Project with `.sh` Script](#build-and-run-project-with-sh-script)
 6. [Troubleshooting](#troubleshooting)
-7. [PC Specs](#pc-specs)
+7. [Timestamps and PC Specs](#timestamps-and-pc-specs)
 
 
 ## Overview
 
-**FastParallelKNN** is a high-performance library for solving the $k$-Nearest Neighbors ($k$-NN) problem, implemented in C with additional tools for testing and benchmarking in Julia and MATLAB. The library includes both **exact** and **approximate** $k$-NN algorithms, with implementations for **serial** and **parallel** processing using **OpenMP**, **OpenCilk**, and **Pthreads**.
+**FastParallelKNN** is a high-performance library for solving the $k$-Nearest Neighbors ($k$-NN) problem, implemented in C with additional tools for testing and benchmarking in Julia. The library includes both **exact** and **approximate** $k$-NN algorithms, with implementations for **serial** and **parallel** processing using **OpenMP**, **OpenCilk**, and **Pthreads**.
 
 The primary focus is to efficiently solve the all-to-all-$k$-NN problem, where each data point in a dataset is compared to all other data points to identify the $k$ nearest neighbors. Mathematically, given a set of points $C$ (corpus) and a query set $Q$, the $k$-NN finds for each point in $Q$ the $k$ closest points in $C$. If $C == Q$ then we have an *all-to-all*-$k$-NN problem. 
 
@@ -47,7 +47,6 @@ If you want to use the parallel $k$-NN implementations, ensure the following:
 ### Additional Tools
 
 - **Julia**: For the initial algorithm design - benchmarking and visualizations. [Download Julia](https://julialang.org/downloads/).
-- **MATLAB**: MATLAB is used to compare the exact solutions. The project's $k$-NN implementation is comparable to MATLAB's `knnsearch`.
 
 ### Step-by-Step Installation
 
@@ -129,7 +128,7 @@ The executable files are `./knn_project` and `./knn_project_clang`, depending on
 |  Run all the *exact* knn functions and evaluate/compare the results based on the given dataset |  0 |
 | Run all the *approx* knn functions and evaluate/compare the results (based on the exact results of an exact knn). The approx solutions solve only the all-to-all k-NN (C == Q) |  1 |
 | Random Data Test for knn_approx_pthread (Playground) |  2 |
-| Add your own custom tests here! |  3 |
+| Add your own custom tests here (we already have extra tests for the approximate methods using the sift-128-euclidean.hdf5 dataset)|  3 |
 
 - **For the OpenCilk we need to set the `CILK_NWORKERS` beforehand**:
   ```bash
@@ -137,10 +136,11 @@ The executable files are `./knn_project` and `./knn_project_clang`, depending on
   ./knn_project_clang ...
   ```
 
-To automate the build and execution with different methods and thread counts, use the provided shell scripts. See the [Script Section](#build-and-run-project-with-sh-script) below.
+To automate the build and execution with different methods and thread counts, **use the provided shell scripts**. See the [Script Section](#build-and-run-project-with-sh-script) below.
 
 
 ## Code Overview
+*For the mathematical explanation of each method check the report.pdf*
 
 ### 1. Exact k-NN Implementations
 
@@ -161,21 +161,21 @@ Utility functions perform essential tasks:
 
 - **Dataset I/O**: Manage loading of HDF5 data.
 - **Distance Calculations**: Efficient computation of distances using OpenBLAS.
-- [**Memory Management**](#memory-management): Dynamically adjust memory allocation based on system specifications.
+- [**Memory Management**](#memory-management): Adjust memory allocation based on your system specifications.
 
 
 ## Memory Management
 
-The `mem_info.h` header plays a crucial role in managing memory usage throughout the project. Given that k-NN operations can be memory-intensive, especially with large datasets, efficient memory management is essential. This header provides functionality to query the system's available memory, allowing the program to dynamically adjust its operations based on current memory constraints.
+The `mem_info.h` header plays a crucial role in managing memory usage throughout the project. Given that k-NN operations can be memory-intensive, especially with large datasets, efficient memory management is essential. This header provides functionality to query the system's available memory, allowing the program to dynamically or 'manually' adjust its operations based on current memory constraints.
 
 ### Key Features
 
 1. **`size_t get_usable_memory(void)`**:
-   - **Purpose**: Retrieves the current usable memory of the system, considering the overall available memory. This function ensures that the program doesn't consume all system resources, leaving enough headroom for other processes.
+   - **Purpose**: Retrieves the current usable memory of the system, considering the overall available memory. This function ensures that the program doesn't consume all system resources, leaving enough headroom for other processes (and other threads) to run.
    - **Usage**: Utilized in the $k$-NN implementations to decide the maximum chunk size of data that can be processed without causing memory overflow.
-   - **Implementation Note**: The function reads from `/proc/meminfo` (on Linux systems) to gather memory information (`MemAvailable`). It then calculates usable memory with a safety margin - `MEMORY_USAGE_RATIO` to $0.7$ which means that only the $70\%$ of the available memory is considered usable - to prevent the system from running out of resources. 
+   - **Implementation Note**: The function reads from `/proc/meminfo` (on Linux systems) to gather memory information (`MemAvailable`). It then calculates usable memory with a safety margin - `MEMORY_USAGE_RATIO` = $0.3$ ($30\%$), to prevent the system from running out of resources. 
    
-   *Warning*: If still with the $70\%$ ratio too much memory is consumed, consider lower this ratio which is defined in the `mem_info.h`file
+   *Warning*: If still with the $30\%$ ratio too much memory is consumed, consider lower this ratio which is defined in the `mem_info.h`file
 
 2. **`USE_CONST_MEMORY`**:
    - **Purpose**:
@@ -186,19 +186,19 @@ The `mem_info.h` header plays a crucial role in managing memory usage throughout
         
         `get_usable_memory` always returns a constant prediction of the usable memory, `USABLE_MEM_PREDICTION`.
 
-    ***Set:*** `USE_CONST_MEMORY` == 1 and `USABLE_MEM_PREDICTION` == [available **Kilobytes** prediction based on the system's specs]. A safe but still efficient prediction is to choose: $(3/8) * [Your\ System's\ Total\ RAM]$.
+    ***Set:*** `USE_CONST_MEMORY` == 1 and `USABLE_MEM_PREDICTION` == [available **Kilobytes** prediction based on the system's specs]. A safe but still efficient prediction is to choose: $(3/8) * [Your\ System's\ Total\ RAM]$ when you run the exact functions and $(3/16) * [Your\ System's\ Total\ RAM]$ when you run the approximate ones (for no more than 8 threads). In case you want to test for more number of threads consider to lower the value even more.  
 
-    ***Warning:*** The computer which was used throughout the development of the project had $16GB$ of total RAM, so there is `USE_CONST_MEMORY` == 1 and `USABLE_MEM_PREDICTION` == 6000000. Change this value according to your own system's specs. It is advised to start with smaller values and observe how close to fail the memory allocation is. 
+    ***Warning:*** The computer which was used throughout the development of the project had $16GB$ of total RAM, so there is `USE_CONST_MEMORY` == 1 and `USABLE_MEM_PREDICTION` == 3000000, to run the approximate functions (the exact function can run also with 6000000). Change this value according to your own system's specs (and according to whether you run the exact or the approximate implementations). It is advised to start with smaller values and observe how close to fail the memory allocation is. 
 
 ### Why It Matters
 
-The memory management provided by `mem_info.h` is essential for handling large-scale datasets. By knowing how much memory is available, the program can decide how much data to load and process in chunks, which avoids exceeding memory limits and allows for efficient batch processing. This functionality is particularly valuable for parallel implementations where multiple threads or tasks need to share resources.
+The memory management provided by `mem_info.h` is essential for handling large-scale datasets. By setting how much memory is should be used per method, the program can decide how much data to load and process in chunks, which avoids exceeding memory limits and allows for efficient batch processing. This functionality is particularly valuable for parallel implementations where multiple threads or tasks need to share resources.
+
+Not allowing to change this memory value is not ideal because running the process in multiple threads means each thread will have distinct memory requirements. Assuming that allocating the maximum possible memory to each thread would yield the optimal solution is overly simplistic. Instead, manually adjusting this value across different settings allows us to identify the optimal configuration for our specific system.
 
 ### Practical Impact
 
-- In scenarios with constrained memory, `get_usable_memory` ensures that $k$-NN computations remain stable by preventing out-of-memory errors, which are common in large-scale data processing.
-
-- `mem_info.h` enhances the robustness and adaptability of the project, making it suitable for a range of environments, from high-performance servers to standard desktop systems.
+If the program crashes with the current number of threads, consider reducing the `USABLE_MEM_PREDICTION` value.
 
 
 ## Build and Run Project with `.sh` Script
@@ -222,6 +222,7 @@ The `run_knn.sh` shell script is designed to facilitate running the `knn_project
    
    - If `method` is `0`: Built and Run all the **exact** knn functions and evaluate/compare the results based on the given dataset
    - If `method` is `1`: Built and Run all the **approx** knn functions and evaluate/compare the results (based on the exact results of an exact knn). Keep in mind that the approximate solutions solve only the all-to-all k-NN problem in which $C == Q$
+   - If `method` is `3`: Built and Run all the **approx** knn functions for the `sift-128-euclidean.hdf5` having as corpus = query the train dataset ($10^6$ x $128$) and evaluate/compare the results based on an exact method.
    - Check the comments in `run_knn.sh` for more info
 
 4. **Script Structure**:
@@ -237,10 +238,11 @@ The `run_knn.sh` shell script is designed to facilitate running the `knn_project
      ./run_knn.sh 0 5 data/sift-128-euclidean.hdf5 train test 100 data/sift-128-euclidean.hdf5 neighbors distances
      ```
    
-   - **k-NN exact functions test**:
+   - **k-NN approximate functions test**:
      
      ```
-     ./run_knn.sh 1 8 null null null 100
+     ./run_knn.sh 1 4 null null null 100
+     ./run_knn.sh 3 6 null null null 100
      ```
 
 6. **Dependencies**: The script relies on correct installation of dependencies like OpenBLAS, GSL, HDF5, and OpenCilk for building and running the executables. *Make sure these are installed and configured properly.*
@@ -252,8 +254,9 @@ The `run_knn.sh` shell script is designed to facilitate running the `knn_project
 - **Compilation Errors**: Ensure all dependencies are correctly installed (`libhdf5`, `libopenblas`, `libgsl`).
 - **Dataset Issues**: Check that HDF5 datasets are formatted and accessible.
 - **OpenCilk Problems**: Ensure the correct `clang` version is installed and available in the system's PATH.
+- **Precess Killed**: Consider lowering the value of `USABLE_MEM_PREDICTION` (see [**Memory Management**](#memory-management))
 
-## PC Specs
+## Timestamps and PC Specs
 
 Here are some basic spec info of the computer in which this project run: 
 
@@ -266,6 +269,18 @@ CPU:
   - On-line CPU(s) list:    0-7
 - Vendor ID:                AuthenticAMD
   - Model name:             AMD Ryzen 7 4700U with Radeon Graphics
+    - CPU family:           23
+    - Model:                96
+    - Thread(s) per core:   1
+    - Core(s) per socket:   8
+    - Socket(s):            1
+    - Stepping:             1
+    - Frequency boost:      enabled
+    - CPU max MHz:          2000,0000
+    - CPU min MHz:          1400,0000
+    - BogoMIPS:             3992.47
+- Vendor ID:                AuthenticAMD
+  - Model name:             AMD Ryzen 7 4700U with Radeon Graphics
 - Caches (sum of all):      
   - L1d:                    256 KiB (8 instances)
   - L1i:                    256 KiB (8 instances)
@@ -274,4 +289,94 @@ CPU:
 
 RAM:
 - MemTotal:       15715508 kB
+---
 
+We download the `sift-128-euclidean.hdf5` inside the data/ folder and run the test `3` for different number of threads. **Ensure** before running the next commands that you have correctly set the `USABLE_MEM_PREDICTION` value inside the `mem_info.h` according to the [**Memory Management**](#memory-management) section. In case of error see [Troubleshooting](#troubleshooting).
+
+**Note:** It is not necessary to run `knn_exact_pthread` for every number of threads (we only run it once to obtain the correct exact results) nor to execute `knn_approx_serial` each time. However, ensure that both are executed at least during the first run; after that, you can comment them out within test case 3 in `main.c`.
+```
+./run_knn.sh 3 4 null null null 100
+./run_knn.sh 3 6 null null null 100
+./run_knn.sh 3 8 null null null 100
+./run_knn.sh 3 12 null null null 100
+```
+
+Below is a table summarizing the results of the executions above, comparing the performance of the approximate parallel methods (`knn_approx_pthread`, `knn_approx_openmp`, and `knn_approx_opencilk`) with varying thread counts. Each row shows the runtime, query rates, and comparison metrics:
+
+| **Threads** | **Method**               | **Running Time (s)** | **Queries per Second** | **Neighbors Hit Rate (%)** | **k-NN Avg Distance Rate (approx/exact)** |
+|-------------|--------------------------|-----------------------|-------------------------|----------------------------|-------------------------------------------|
+| **6**       | `knn_exact_pthread`      | 2589.54                | 386.17                  | -                          | -                                         |
+|             | `knn_approx_serial`      | 1061.05                | 942.46                  | 99.90                      | 1.00023                                    |
+| **4**       | `knn_approx_pthread`     | 414.91                 | 2410.16                 | 30.16                      | 1.06679                                    |
+|             | `knn_approx_openmp`      | 420.97                 | 2375.47                 | 30.16                      | 1.06679                                    |
+|             | `knn_approx_opencilk`    | 417.37                 | 2395.96                 | 30.16                      | 1.06679                                    |
+| **6**       | `knn_approx_pthread`     | 294.48                 | 3395.80                 | 21.91                      | 1.08778                                    |
+|             | `knn_approx_openmp`      | 284.41                 | 3516.05                 | 21.91                      | 1.08778                                    |
+|             | `knn_approx_opencilk`    | 278.20                 | 3594.56                 | 21.91                      | 1.08778                                    |
+| **8**       | `knn_approx_pthread`     | 219.75                 | 4550.52                 | 17.77                      | 1.10347                                    |
+|             | `knn_approx_openmp`      | 226.39                 | 4417.21                 | 17.77                      | 1.10347                                    |
+|             | `knn_approx_opencilk`    | 235.59                 | 4244.73                 | 17.77                      | 1.10347                                    |
+| **12**      | `knn_approx_pthread`     | 142.66                 | 7009.78                 | 13.49                      | 1.12639                                    |
+|             | `knn_approx_openmp`      | 171.12                 | 5843.99                 | 13.49                      | 1.12639                                    |
+|             | `knn_approx_opencilk`    | 161.91                 | 6176.14                 | 13.49                      | 1.12639                                    |
+
+### Observations
+
+1. **Performance Across Thread Counts**:
+   - Increasing the number of threads results in lower running times and higher query rates, showcasing the benefits of parallelization.
+   - Accuracy, as represented by the `Neighbors Hit Rate` (and `k-NN Average Distances Rate`), decreases with more threads, reflecting a potential trade-off between speed and precision.
+
+2. **Comparison of Methods**:
+   - All approximate parallel methods (`knn_approx_pthread`, `knn_approx_openmp`, and `knn_approx_opencilk`) show consistent `Neighbors Hit Rate` and `k-NN Average Distances Rate` at each thread level.
+
+3. **Theoretical Analysis**
+    - While an accuracy of 17.77% for 8 threads may initially seem very low, it is important to consider the time savings achieved by the approximate methods. For instance, achieving 17.77% accuracy using the exact method would require running the program for approximately:
+    $2589.54 \, \text{seconds (exact runtime)} \times 0.1777 \approx 460 \, \text{seconds}$. 
+    In contrast, the approximate methods achieve the same accuracy in approximately half the time. This demonstrates the significant efficiency gains offered by approximate parallel approaches, especially when high accuracy is not critical. (Running the exact method with more than 6 threads will not improve the running time - see report.pdf).
+
+
+### Performance Metrics
+The plots below illustrate the performance of the approximate k-NN methods (`pthread`, `openmp`, and `opencilk`) based on the results obtained from running test case 3. The evaluation was performed by varying the number of threads and examining the relationship between performance (Queries per Second) and accuracy (Neighbors Hit Rate).
+
+### 1. Queries per Second vs. Number of Threads
+![Queries per Second - Number of Threads](results/plots/queries_per_sec_threads.png)
+
+This plot shows the query rate as the number of threads increases for the three approximate parallel k-NN methods.
+
+**Observations:**
+- **Linear Scalability**: All methods exhibit linear scaling in terms of Queries per Second as the number of threads increases. This indicates that the workload benefits significantly from parallelization.
+- **Method Performance**:
+  - `openmp` and `opencilk` have similar performance but for larger number of threads lag behind `pthread`.
+
+**Key Outcome**: Increasing the number of threads significantly boosts performance, with `pthread` to outperform the other methods in absolute query rates.
+
+---
+
+### 2. Queries per Second vs. Neighbors Hit Rate
+![Queries per Second - Neighbors Hit Rate](results/plots/queries_per_sec_neighbors_hit_rate.png)
+
+This plot illustrates how the query rate varies with the accuracy metric (Neighbors Hit Rate) for different methods.
+
+**Observations:**
+- **Accuracy-Performance Tradeoff**: As the Neighbors Hit Rate decreases, the Queries per Second increases across all methods. This is due to less computational effort being required for approximate results with lower accuracy.
+- **Method Comparison**:
+  - At higher accuracy levels (lower Queries per Second), the methods are closely matched.
+  - As accuracy drops, `pthread` achieves higher query rates, followed by `opencilk`, with `openmp` slightly behind.
+
+**Key Outcome**: There is a clear tradeoff between accuracy and performance, with `pthread` offering the best performance at lower accuracy levels.
+
+---
+
+### Summary of Results
+The table below summarizes the key trends observed from the data and plots:
+
+| **Factor**                  | **Key Observation**                                                                                  |
+|-----------------------------|-----------------------------------------------------------------------------------------------------|
+| **Scalability**             | Performance scales linearly with thread count for all approximate methods, demonstrating efficient parallelization. |
+| **Best Performance**        | `pthread` achieves the highest query rates when accuracy is low                                    |
+| **Accuracy vs. Performance**| Higher query rates are achieved at the cost of lower Neighbors Hit Rate for all methods.            |
+| **Overhead Differences**    | `openmp` and `opencilk` exhibit slightly more overhead than `pthread`, leading to lower query rates. |
+
+These results highlight the trade-offs between performance, accuracy, and method choice when implementing parallel approximate k-NN computations.
+
+---

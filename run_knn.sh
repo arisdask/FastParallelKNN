@@ -14,7 +14,7 @@
 #  1 - Run all the *approx* knn functions and evaluate/compare the results (based on the exact results of an exact knn)
 #      Keep in mind that the approximate solutions solve only the all-to-all k-NN problem in which C == Q
 #  2 - Random Data Test for knn_approx_pthread (Playground)
-#  3 - You can add your own custom tests here!
+#  3 - You can add your own custom tests here (we already have extra tests for the approximate methods using the sift-128-euclidean.hdf5 dataset)
 
 # Check the number of arguments
 if [ "$#" -lt 6 ]; then
@@ -53,7 +53,7 @@ $COMMAND
 echo " "
 
 # Determine which executable to run
-if [[ "$METHOD" -eq 0 || "$METHOD" -eq 1 ]]; then
+if [[ "$METHOD" -eq 0 || "$METHOD" -eq 1 || "$METHOD" -eq 3 ]]; then
     # Build project with Clang
     echo "Building Project with Makefile.clang..."
     make -f Makefile.clang clean

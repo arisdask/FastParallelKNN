@@ -24,6 +24,7 @@ int main(int argc, char* argv[]) {
 
     // Perform operation based on the method
     switch (method) {
+        // These cases are running after the `main.c` (see main.c for more info).
         case 0:
             printf("Running knn_exact_opencilk with %d threads:\n", num_of_threads);
             generate_knn_exact_results(knn_exact_opencilk, data_path, corpus_name, query_name, k, num_of_threads, 4);
@@ -37,13 +38,27 @@ int main(int argc, char* argv[]) {
             break;
 
         case 1:
-            printf("Running knn_approx_opencilk:\n");
+            printf("Running knn_approx_opencilk with %d threads:\n", num_of_threads);
             generate_knn_approx_results(knn_approx_opencilk, "data/random_dataset/test_corpus.hdf5", "test", k, num_of_threads, 0, 8);
             printf("\n");
 
             printf("Compare knn_approx_opencilk results with expected:\n");
             compare_knn_approx_results("results/data_knn/knn_exact_pthread.hdf5", "neighbors", "distances",
                     "results/data_knn/knn_approx_opencilk.hdf5", "neighbors", "distances");
+
+            break;
+
+        case 3:
+            printf("Running knn_approx_opencilk with %d threads:\n", num_of_threads);
+            generate_knn_approx_results(knn_approx_opencilk, "data/sift-128-euclidean.hdf5", "train", k, num_of_threads, 0, 8);
+            printf("\n");
+            printf("\n");
+
+            // We already have test that the knn_exact_pthread gives correct results.
+            printf("Compare knn_approx_opencilk results with expected:\n");
+            compare_knn_approx_results("results/data_knn/knn_exact_pthread.hdf5", "neighbors", "distances",
+                    "results/data_knn/knn_approx_opencilk.hdf5", "neighbors", "distances");
+            printf("\n");
 
             break;
 
