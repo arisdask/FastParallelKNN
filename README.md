@@ -334,6 +334,7 @@ Below is a table summarizing the results of the executions above, comparing the 
     - While an accuracy of 17.77% for 8 threads may initially seem very low, it is important to consider the time savings achieved by the approximate methods. For instance, achieving 17.77% accuracy using the exact method would require running the program for approximately:
     $2589.54 \, \text{seconds (exact runtime)} \times 0.1777 \approx 460 \, \text{seconds}$. 
     In contrast, the approximate methods achieve the same accuracy in approximately half the time. This demonstrates the significant efficiency gains offered by approximate parallel approaches, especially when high accuracy is not critical. (Running the exact method with more than 6 threads will not improve the running time - see report.pdf).
+    - The number of threads in our implementation affects result accuracy due to the way the problem is divided into sub-problems. Increasing threads introduces more splits, which can lead to greater error during data merging (as discussed in the report.pdf). However, this relationship is not strictly proportional; for instance, doubling threads from 4 to 8 makes the process $45\%$ faster, while accuracy only decreases by $40\%$. This demonstrates the balance we aim to achieve.
 
 
 ### Performance Metrics
